@@ -1,0 +1,24 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-xxs);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.queued {
+  color: var(--color-text-muted-4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.adding {
+  color: var(--color-warning);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.added {
+  color: var(--color-spotify);
+  background: var(--color-spotify-bg);
+}

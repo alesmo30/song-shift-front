@@ -1,0 +1,278 @@
+/* ==========================================================================
+   Totify — Global Design Tokens & Base Styles
+   Import once at the app root (e.g. index.tsx / main.tsx / App.tsx)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+
+:root {
+  /* ---- Color: surfaces ---- */
+  --color-bg: #07070F;
+  --color-bg-glow-brand: rgba(255, 45, 85, 0.10);
+  --color-bg-glow-spotify: rgba(29, 185, 84, 0.08);
+
+  --color-panel: rgba(255, 255, 255, 0.03);
+  --color-panel-border: rgba(255, 255, 255, 0.07);
+  --color-card: rgba(255, 255, 255, 0.04);
+  --color-card-border: rgba(255, 255, 255, 0.09);
+  --color-row: rgba(255, 255, 255, 0.03);
+  --color-row-border: rgba(255, 255, 255, 0.05);
+  --color-track: rgba(0, 0, 0, 0.25);
+
+  --color-input-bg: rgba(255, 255, 255, 0.06);
+  --color-input-border: rgba(255, 255, 255, 0.1);
+  --color-chip-bg: rgba(255, 255, 255, 0.06);
+  --color-chip-border: rgba(255, 255, 255, 0.08);
+
+  /* ---- Color: text ---- */
+  --color-text: #ffffff;
+  --color-text-muted-1: rgba(255, 255, 255, 0.55);
+  --color-text-muted-2: rgba(255, 255, 255, 0.38);
+  --color-text-muted-3: rgba(255, 255, 255, 0.28);
+  --color-text-muted-4: rgba(255, 255, 255, 0.2);
+  --color-label: rgba(255, 255, 255, 0.5);
+
+  /* ---- Color: brand (logo-derived) ---- */
+  --color-brand-start: #FF2D55;
+  --color-brand-mid: #FF9500;
+  --color-brand-end: #4CD964;
+  --color-brand-cta-start: #FF2D55;
+  --color-brand-cta-end: #FF7043;
+  --gradient-brand-cta: linear-gradient(135deg, var(--color-brand-cta-start), var(--color-brand-cta-end));
+  --shadow-brand-cta: 0 4px 18px rgba(255, 45, 85, 0.35);
+  --color-link: #FF7043;
+  --color-link-hover: #FF8A65;
+
+  /* ---- Color: semantic ---- */
+  --color-spotify: #1DB954;
+  --color-spotify-bg: rgba(29, 185, 84, 0.1);
+  --color-spotify-bg-strong: rgba(29, 185, 84, 0.12);
+  --color-spotify-border: rgba(29, 185, 84, 0.18);
+  --color-error: #F87171;
+  --color-warning: #FBBF24;
+  --color-success: var(--color-spotify);
+
+  /* ---- Typography ---- */
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  --fs-display-lg: 28px;   /* logo wordmark, card headlines */
+  --fs-display-md: 20px;   /* navbar wordmark */
+  --fs-heading: 15px;      /* panel section titles */
+  --fs-body-lg: 15px;      /* primary buttons */
+  --fs-body: 14.5px;       /* inputs */
+  --fs-body-sm: 13.5px;    /* row titles, tab labels */
+  --fs-caption: 13px;      /* footer text, errors */
+  --fs-caption-sm: 12.5px;
+  --fs-micro: 11.5px;      /* labels, meta text, pills */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+
+  --tracking-display: -1px;
+  --tracking-display-sm: -0.6px;
+  --tracking-label: 0.6px;
+
+  /* ---- Radius ---- */
+  --radius-lg: 22px;   /* auth cards */
+  --radius-md: 16px;   /* panels */
+  --radius-input: 11px;
+  --radius-sm: 10px;   /* buttons, tab track */
+  --radius-xs: 8px;    /* small buttons, logo badge (nav) */
+  --radius-xxs: 7px;   /* pills, tab buttons */
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* ---- Spacing scale ---- */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 20px;
+  --space-9: 24px;
+  --space-10: 28px;
+  --space-11: 32px;
+  --space-12: 44px;
+
+  /* ---- Effects ---- */
+  --blur-card: blur(20px);
+  --blur-nav: blur(16px);
+  --transition-fast: 0.2s;
+  --transition-base: 0.25s;
+  --transition-slow: 0.4s;
+
+  /* ---- Layout ---- */
+  --navbar-height: 56px;
+  --auth-card-width: 420px;
+}
+
+/* ---- Resets ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 55% 45% at 12% 8%, var(--color-bg-glow-brand) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 88% 92%, var(--color-bg-glow-spotify) 0%, transparent 55%),
+    var(--color-bg);
+}
+
+input, button, textarea, select {
+  font-family: var(--font-body);
+  color: inherit;
+}
+
+input:focus, button:focus {
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-link-hover);
+}
+
+::placeholder {
+  color: var(--color-text-muted-3);
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-pill);
+}
+
+/* ---- Shared component classes ---- */
+
+.t-heading {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.2px;
+}
+
+.t-wordmark {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+}
+
+.t-label {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  color: var(--color-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.t-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--blur-card);
+}
+
+.t-panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: var(--radius-md);
+}
+
+.t-row {
+  background: var(--color-row);
+  border: 1px solid var(--color-row-border);
+  border-radius: var(--radius-sm);
+}
+
+.t-input {
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-input);
+  padding: 13px var(--space-7);
+  font-size: var(--fs-body);
+  color: var(--color-text);
+}
+
+.t-btn-primary {
+  background: var(--gradient-brand-cta);
+  border: none;
+  border-radius: var(--radius-input);
+  padding: 15px;
+  color: #fff;
+  font-size: var(--fs-body-lg);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-brand-cta);
+  transition: filter var(--transition-fast);
+}
+
+.t-btn-primary:hover {
+  filter: brightness(1.06);
+}
+
+.t-btn-secondary {
+  background: var(--color-chip-bg);
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-xs);
+  padding: 7px var(--space-8);
+  color: var(--color-text-muted-1);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+}
+
+.t-pill-success {
+  background: var(--color-spotify-bg);
+  border: 1px solid var(--color-spotify-border);
+  border-radius: var(--radius-xxs);
+  color: var(--color-spotify);
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+}
+
+.t-error-text {
+  color: var(--color-error);
+  font-size: var(--fs-caption);
+}
+
+@keyframes t-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes t-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes t-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

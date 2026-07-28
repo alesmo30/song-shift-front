@@ -1,0 +1,43 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: var(--space-3) var(--space-5);
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+}
+
+.iconBrand {
+  background: linear-gradient(135deg, rgba(252, 60, 68, 0.25), rgba(79, 70, 229, 0.2));
+}
+
+.iconSpotify {
+  background: var(--color-spotify-bg-strong);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  font-size: var(--fs-micro);
+  color: var(--color-text-muted-2);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

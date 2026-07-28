@@ -1,0 +1,29 @@
+.track {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--color-track);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1);
+}
+
+.tab {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xxs);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted-1);
+  font-size: 13px;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.active {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+}

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #07070F; font-family: 'DM Sans', sans-serif; color: #fff; overflow: hidden; height: 100vh; }
+    input, button, textarea, select { font-family: 'DM Sans', sans-serif; }
+    input:focus { outline: none; }
+    button:focus { outline: none; }
+    ::placeholder { color: rgba(255,255,255,0.28); }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  </style>
+</helmet>
+
+<div style="height: 100vh; display: flex; flex-direction: column; background: radial-gradient(ellipse 55% 45% at 12% 8%, rgba(255,45,85,0.1) 0%, transparent 55%), radial-gradient(ellipse 50% 50% at 88% 92%, rgba(29,185,84,0.08) 0%, transparent 55%), #07070F;">
+
+  <!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="Login" style="flex: 1; display: flex; align-items: center; justify-content: center; animation: fadeUp 0.5s ease;">
+      <div style="width: 420px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 22px; padding: 48px 44px; backdrop-filter: blur(20px);">
+
+        <!-- Logo -->
+        <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 6px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #fff;">
+            <img src="assets/logo-mark.png" alt="Totify" style="width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block;" />
+          </div>
+          <span style="font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px;">totify</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.38); font-size: 13.5px; margin-bottom: 38px; line-height: 1.5;">Bridge your Apple Music library to Spotify — effortlessly.</p>
+
+        <!-- Fields -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <label style="font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.6px; text-transform: uppercase;">Email</label>
+            <input
+              type="email"
+              value="{{ email }}"
+              onChange="{{ onEmailChange }}"
+              onKeyDown="{{ onLoginKeyDown }}"
+              placeholder="you@example.com"
+              style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 13px 16px; color: #fff; font-size: 14.5px;"
+            />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <label style="font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.6px; text-transform: uppercase;">Password</label>
+            <input
+              type="password"
+              value="{{ password }}"
+              onChange="{{ onPasswordChange }}"
+              onKeyDown="{{ onLoginKeyDown }}"
+              placeholder="••••••••"
+              style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 13px 16px; color: #fff; font-size: 14.5px;"
+            />
+          </div>
+
+          <sc-if value="{{ hasLoginError }}" hint-placeholder-val="{{ false }}">
+            <p style="color: #F87171; font-size: 13px; margin-top: -4px;">{{ loginError }}</p>
+          </sc-if>
+
+          <button
+            onClick="{{ onLogin }}"
+            style="margin-top: 6px; background: linear-gradient(135deg, #FF2D55, #FF7043); border: none; border-radius: 11px; padding: 15px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.1px; box-shadow: 0 4px 18px rgba(255,45,85,0.35);"
+          >Sign In</button>
+        </div>
+
+        <p style="margin-top: 28px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.28);">Don't have an account? <span onClick="{{ onGoSignup }}" style="color: #FF7043; cursor: pointer;">Sign up free</span></p>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════════ SIGNUP PAGE ═══════════════ -->
+  <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Signup" style="flex: 1; display: flex; align-items: center; justify-content: center; animation: fadeUp 0.5s ease; overflow-y: auto;">
+      <div style="width: 420px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 22px; padding: 48px 44px; backdrop-filter: blur(20px); margin: 20px 0;">
+
+        <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 6px;">
+          <div style="width: 38px; height: 38px; border-radius: 11px; overflow: hidden; flex-shrink: 0; background: #fff;">
+            <img src="assets/logo-mark.png" alt="Totify" style="width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block;" />
+          </div>
+          <span style="font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px;">totify</span>
+        </div>
+        <p style="color: rgba(255,255,255,0.38); font-size: 13.5px; margin-bottom: 38px; line-height: 1.5;">Create your account to get started.</p>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; gap: 12px;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.6px; text-transform: uppercase;">Name</label>
+              <input
+                type="text"
+                value="{{ signupName }}"
+                onChange="{{ onSignupNameChange }}"
+                placeholder="Jane"
+                style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 13px 16px; color: #fff; font-size: 14.5px; width: 100%;"
+              />
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 7px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.6px; text-transform: uppercase;">Last name</label>
+              <input
+                type="text"
+                value="{{ signupLastName }}"
+                onChange="{{ onSignupLastNameChange }}"
+                placeholder="Doe"
+                style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 13px 16px; color: #fff; font-size: 14.5px; width: 100%;"
+              />
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <label style="font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.6px; text-transform: uppercase;">Email</label>
+            <input
+              type="email"
+              value="{{ signupEmail }}"
+              onChange="{{ onSignupEmailChange }}"
+              placeholder="you@example.com"
+              style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 13px 16px; color: #fff; font-size: 14.5px;"
+            />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <label style="font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.6px; text-transform: uppercase;">Password</label>
+            <input
+              type="password"
+              value="{{ signupPassword }}"
+              onChange="{{ onSignupPasswordChange }}"
+              placeholder="••••••••"
+              style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 11px; padding: 13px 16px; color: #fff; font-size: 14.5px;"
+            />
+          </div>
+
+          <sc-if value="{{ hasSignupError }}" hint-placeholder-val="{{ false }}">
+            <p style="color: #F87171; font-size: 13px; margin-top: -4px;">{{ signupError }}</p>
+          </sc-if>
+
+          <button
+            onClick="{{ onSignup }}"
+            style="margin-top: 6px; background: linear-gradient(135deg, #FF2D55, #FF7043); border: none; border-radius: 11px; padding: 15px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.1px; box-shadow: 0 4px 18px rgba(255,45,85,0.35);"
+          >Create Account</button>
+        </div>
+
+        <p style="margin-top: 28px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.28);">Already have an account? <span onClick="{{ onGoLogin }}" style="color: #FF7043; cursor: pointer;">Sign in</span></p>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ═══════════════ LANDING PAGE ═══════════════ -->
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Landing" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; animation: fadeUp 0.35s ease;">
+
+      <!-- NAVBAR -->
+      <nav style="height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(7,7,15,0.85); backdrop-filter: blur(16px); z-index: 10;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #fff;">
+            <img src="assets/logo-mark.png" alt="Totify" style="width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block;" />
+          </div>
+          <span style="font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.6px;">totify</span>
+        </div>
+        <button
+          onClick="{{ onLogout }}"
+          style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 7px 18px; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500; cursor: pointer;"
+        >Log out</button>
+      </nav>
+
+      <!-- SPOTIFY CONNECT BANNER -->
+      <div style="flex-shrink: 0; padding: 11px 28px; border-bottom: 1px solid rgba(255,255,255,0.06); background: {{ spotifyBannerBg }}; display: flex; align-items: center; justify-content: space-between; gap: 16px; transition: background 0.4s;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 34px; height: 34px; background: #1DB954; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.13-9.965-1.166a.78.78 0 01-.973-.519.781.781 0 01.52-.972c3.632-1.102 8.147-.568 11.233 1.328a.78.78 0 01.257 1.072zm.105-2.835c-3.223-1.914-8.54-2.09-11.618-1.156a.935.935 0 11-.543-1.79c3.533-1.072 9.404-.865 13.115 1.338a.936.936 0 01-1.05 1.553z"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size: 13.5px; font-weight: 500; color: {{ spotifyStatusColor }};">{{ spotifyStatusText }}</p>
+          </div>
+        </div>
+        <button
+          onClick="{{ onToggleSpotify }}"
+          style="background: {{ spotifyBtnBg }}; border: {{ spotifyBtnBorder }}; border-radius: 9px; padding: 9px 20px; color: {{ spotifyBtnColor }}; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: all 0.25s; white-space: nowrap;"
+        >{{ spotifyBtnLabel }}</button>
+      </div>
+
+      <!-- TWO PANELS -->
+      <div style="flex: 1; display: flex; gap: 14px; padding: 16px 28px 20px; overflow: hidden; min-height: 0;">
+
+        <!-- ─── LEFT PANEL: Find Songs ─── -->
+        <div style="flex: 1; display: flex; flex-direction: column; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; overflow: hidden; min-width: 0;">
+
+          <!-- Panel header -->
+          <div style="padding: 18px 20px 0; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 15px;">
+              <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #FC3C44, #FF2D55); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              </div>
+              <h2 style="font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Find Songs</h2>
+              <span style="font-size: 11.5px; color: rgba(255,255,255,0.3);">from Apple Music</span>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 4px; margin-bottom: 16px;">
+              <button onClick="{{ onSearchTab }}" style="flex: 1; padding: 8px 10px; border-radius: 7px; border: none; background: {{ searchTabBg }}; color: {{ searchTabColor }}; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search
+              </button>
+              <button onClick="{{ onUploadTab }}" style="flex: 1; padding: 8px 10px; border-radius: 7px; border: none; background: {{ uploadTabBg }}; color: {{ uploadTabColor }}; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Upload Photo
+              </button>
+            </div>
+          </div>
+
+          <!-- SEARCH TAB -->
+          <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ true }}">
+            <div style="flex: 1; display: flex; flex-direction: column; padding: 0 20px 18px; gap: 12px; overflow: hidden; min-height: 0;">
+
+              <!-- Input row -->
+              <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                <input
+                  type="text"
+                  value="{{ searchQuery }}"
+                  onChange="{{ onQueryChange }}"
+                  onKeyDown="{{ onSearchKeyDown }}"
+                  placeholder="Song title, artist, or album…"
+                  style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 14px; min-width: 0;"
+                />
+                <button
+                  onClick="{{ onSearch }}"
+                  style="background: #FF2D55; border: none; border-radius: 10px; padding: 10px 20px; color: #fff; font-size: 13.5px; font-weight: 600; cursor: pointer; flex-shrink: 0;"
+                >Search</button>
+              </div>
+
+              <!-- Results list -->
+              <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}">
+                <div style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 11.5px; color: rgba(255,255,255,0.35);">{{ allResultsCount }} results · page {{ currentPage }} of {{ totalPages }}</span>
+                </div>
+                <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; min-height: 0;">
+                  <sc-for list="{{ searchResults }}" as="song" hint-placeholder-count="6">
+                    <div style="display: flex; align-items: center; gap: 11px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px;">
+                      <div style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(252,60,68,0.25), rgba(79,70,229,0.2)); border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                      </div>
+                      <div style="flex: 1; min-width: 0;">
+                        <p style="font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title }}</p>
+                        <p style="font-size: 11.5px; color: rgba(255,255,255,0.38); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }} · {{ song.duration }}</p>
+                      </div>
+                      <button
+                        onClick="{{ song.add }}"
+                        disabled="{{ song.addDisabled }}"
+                        style="flex-shrink: 0; background: {{ song.addBg }}; border: {{ song.addBorder }}; border-radius: 7px; padding: 5px 13px; color: #1DB954; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s;"
+                      >{{ song.addLabel }}</button>
+                    </div>
+                  </sc-for>
+                </div>
+                <!-- Pagination -->
+                <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+                  <button onClick="{{ onPrev }}" disabled="{{ prevDisabled }}" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; padding: 6px 14px; color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer;">← Prev</button>
+                  <span style="font-size: 12.5px; color: rgba(255,255,255,0.35); min-width: 56px; text-align: center;">{{ currentPage }} / {{ totalPages }}</span>
+                  <button onClick="{{ onNext }}" disabled="{{ nextDisabled }}" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; padding: 6px 14px; color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer;">Next →</button>
+                </div>
+              </sc-if>
+
+              <!-- No results -->
+              <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px;">
+                  <span style="font-size: 32px; opacity: 0.6;">🔍</span>
+                  <p style="font-size: 14px; color: rgba(255,255,255,0.4); font-weight: 500;">No songs found</p>
+                  <p style="font-size: 12.5px; color: rgba(255,255,255,0.22);">Try a different search term</p>
+                </div>
+              </sc-if>
+
+              <!-- Initial empty -->
+              <sc-if value="{{ showInitialSearch }}" hint-placeholder-val="{{ true }}">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center;">
+                  <div style="width: 52px; height: 52px; background: rgba(252,60,68,0.08); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(252,60,68,0.6)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  </div>
+                  <p style="font-size: 14px; color: rgba(255,255,255,0.38); font-weight: 500;">Search Spotify</p>
+                  <p style="font-size: 12.5px; color: rgba(255,255,255,0.2); line-height: 1.6;">Type a song name, artist,<br/>or album to find matches</p>
+                </div>
+              </sc-if>
+
+            </div>
+          </sc-if>
+
+          <!-- UPLOAD TAB -->
+          <sc-if value="{{ isUpload }}" hint-placeholder-val="{{ false }}">
+            <div style="flex: 1; display: flex; flex-direction: column; padding: 0 20px 18px; gap: 12px; overflow: hidden; min-height: 0;">
+
+              <!-- Drop zone (no image yet) -->
+              <sc-if value="{{ noUploadedImage }}" hint-placeholder-val="{{ true }}">
+                <div
+                  onDragOver="{{ onDragOver }}"
+                  onDragLeave="{{ onDragLeave }}"
+                  onDrop="{{ onDrop }}"
+                  style="flex: 1; position: relative; background: {{ dropZoneBg }}; border: {{ dropZoneBorder }}; border-radius: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; transition: all 0.25s; min-height: 0; cursor: pointer; text-align: center; padding: 20px;"
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange="{{ onFileChange }}"
+                    style="position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2;"
+                  />
+                  <div style="width: 52px; height: 52px; background: rgba(255,255,255,0.06); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.4)" stroke="none"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <p style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.55);">Drop your Apple Music screenshot</p>
+                  <p style="font-size: 12.5px; color: rgba(255,255,255,0.28);">or click to browse — PNG, JPG supported</p>
+                </div>
+              </sc-if>
+
+              <!-- Image uploaded state -->
+              <sc-if value="{{ hasUploadedImage }}" hint-placeholder-val="{{ false }}">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; overflow: hidden; min-height: 0;">
+
+                  <!-- Preview + clear -->
+                  <div style="position: relative; flex-shrink: 0; border-radius: 11px; overflow: hidden;">
+                    <div style="width: 100%; height: 150px; background-image: url('{{ uploadedImage }}'); background-size: cover; background-position: center; display: block;"></div>
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%);"></div>
+                    <button
+                      onClick="{{ onClearImage }}"
+                      style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.65); border: none; border-radius: 50%; width: 28px; height: 28px; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; z-index: 2;"
+                    >×</button>
+                    <p style="position: absolute; bottom: 10px; left: 12px; font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;">Screenshot ready</p>
+                  </div>
+
+                  <!-- Validate button -->
+                  <button
+                    onClick="{{ onValidate }}"
+                    disabled="{{ validateBtnDisabled }}"
+                    style="flex-shrink: 0; background: linear-gradient(135deg, #FF2D55, #FF7043); border: none; border-radius: 10px; padding: 12px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; animation: {{ validateAnim }};"
+                  >{{ validateBtnLabel }}</button>
+
+                  <!-- Detected songs -->
+                  <sc-if value="{{ hasDetectedSongs }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; min-height: 0;">
+                      <p style="font-size: 11.5px; color: rgba(255,255,255,0.35); flex-shrink: 0; padding-bottom: 4px;">AI detected these songs — confirm before adding:</p>
+                      <sc-for list="{{ detectedSongs }}" as="song" hint-placeholder-count="3">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;">
+                          <div style="flex: 1; min-width: 0;">
+                            <p style="font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title }}</p>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.38); margin-top: 2px;">{{ song.artist }}</p>
+                          </div>
+                          <span style="font-size: 11px; font-weight: 700; color: {{ song.confColor }}; flex-shrink: 0;">{{ song.confPct }}</span>
+                          <button
+                            onClick="{{ song.add }}"
+                            style="flex-shrink: 0; background: rgba(29,185,84,0.1); border: 1px solid rgba(29,185,84,0.2); border-radius: 7px; padding: 5px 13px; color: #1DB954; font-size: 12px; font-weight: 600; cursor: pointer;"
+                          >{{ song.addLabel }}</button>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+
+                  <!-- Awaiting validation (uploaded but not yet validated) -->
+                  <sc-if value="{{ awaitingValidation }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 10px;">
+                      <p style="font-size: 13px; color: rgba(255,255,255,0.35);">Click "Validate with AI" to detect songs from this screenshot</p>
+                    </div>
+                  </sc-if>
+
+                </div>
+              </sc-if>
+
+            </div>
+          </sc-if>
+
+        </div>
+
+        <!-- ─── RIGHT PANEL: Spotify Destination ─── -->
+        <div style="flex: 1; display: flex; flex-direction: column; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; overflow: hidden; min-width: 0;">
+
+          <!-- Panel header -->
+          <div style="padding: 17px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 24px; height: 24px; background: #1DB954; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.13-9.965-1.166a.78.78 0 01-.973-.519.781.781 0 01.52-.972c3.632-1.102 8.147-.568 11.233 1.328a.78.78 0 01.257 1.072zm.105-2.835c-3.223-1.914-8.54-2.09-11.618-1.156a.935.935 0 11-.543-1.79c3.533-1.072 9.404-.865 13.115 1.338a.936.936 0 01-1.05 1.553z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 style="font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">Spotify Playlist</h2>
+                <p style="font-size: 11.5px; color: rgba(255,255,255,0.32); margin-top: 1px;">{{ addedCount }} of {{ destCount }} songs added</p>
+              </div>
+            </div>
+            <!-- Refresh -->
+            <button
+              onClick="{{ onRefresh }}"
+              style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="animation: {{ refreshSpin }};">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M8 16H3v5"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Song list -->
+          <div style="flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 7px; min-height: 0;">
+
+            <sc-if value="{{ hasDestinationSongs }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ destinationSongs }}" as="song" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px;">
+                  <div style="width: 36px; height: 36px; background: rgba(29,185,84,0.1); border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <p style="font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.title }}</p>
+                    <p style="font-size: 11.5px; color: rgba(255,255,255,0.38); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ song.artist }}</p>
+                  </div>
+                  <div style="flex-shrink: 0; background: {{ song.statusBg }}; border-radius: 20px; padding: 4px 11px;">
+                    <span style="font-size: 11.5px; color: {{ song.statusColor }}; font-weight: 500;">{{ song.statusText }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </sc-if>
+
+            <!-- Empty destination state -->
+            <sc-if value="{{ noDestinationSongs }}" hint-placeholder-val="{{ true }}">
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 40px 24px; text-align: center; height: 100%;">
+                <div style="width: 58px; height: 58px; background: rgba(29,185,84,0.07); border: 1px solid rgba(29,185,84,0.12); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1DB954" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.5">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                </div>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.38); font-weight: 500;">No songs yet</p>
+                <p style="font-size: 12.5px; color: rgba(255,255,255,0.2); line-height: 1.65;">Search for songs or upload an<br/>Apple Music screenshot,<br/>then add them here.</p>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    page: 'login',
+    email: '',
+    password: '',
+    loginError: '',
+    signupName: '',
+    signupLastName: '',
+    signupEmail: '',
+    signupPassword: '',
+    signupError: '',
+    spotifyConnected: false,
+    activeTab: 'search',
+    searchQuery: '',
+    allSearchResults: [],
+    hasSearched: false,
+    currentPage: 1,
+    resultsPerPage: 6,
+    uploadedImage: null,
+    isDragging: false,
+    destinationSongs: [],
+    refreshing: false,
+    validatingImage: false,
+    detectedSongs: [],
+  };
+
+  songLibrary = [
+    { id: 1,  title: 'Blinding Lights',           artist: 'The Weeknd',                    duration: '3:20' },
+    { id: 2,  title: 'Shape of You',               artist: 'Ed Sheeran',                    duration: '3:53' },
+    { id: 3,  title: 'Levitating',                 artist: 'Dua Lipa',                      duration: '3:23' },
+    { id: 4,  title: 'Stay',                       artist: 'The Kid LAROI & Justin Bieber', duration: '2:21' },
+    { id: 5,  title: 'Peaches',                    artist: 'Justin Bieber',                 duration: '3:18' },
+    { id: 6,  title: 'Good 4 U',                   artist: 'Olivia Rodrigo',                duration: '2:58' },
+    { id: 7,  title: 'Montero',                    artist: 'Lil Nas X',                     duration: '2:17' },
+    { id: 8,  title: 'Butter',                     artist: 'BTS',                           duration: '2:42' },
+    { id: 9,  title: 'Bad Habits',                 artist: 'Ed Sheeran',                    duration: '3:51' },
+    { id: 10, title: 'Kiss Me More',               artist: 'Doja Cat ft. SZA',              duration: '3:36' },
+    { id: 11, title: 'Watermelon Sugar',           artist: 'Harry Styles',                  duration: '2:54' },
+    { id: 12, title: 'drivers license',            artist: 'Olivia Rodrigo',                duration: '4:02' },
+    { id: 13, title: 'Heat Waves',                 artist: 'Glass Animals',                 duration: '3:59' },
+    { id: 14, title: 'Happier Than Ever',          artist: 'Billie Eilish',                 duration: '4:58' },
+    { id: 15, title: 'Industry Baby',              artist: 'Lil Nas X & Jack Harlow',       duration: '3:32' },
+    { id: 16, title: 'Leave The Door Open',        artist: 'Silk Sonic',                    duration: '4:02' },
+    { id: 17, title: 'Astronaut in the Ocean',     artist: 'Masked Wolf',                   duration: '2:30' },
+    { id: 18, title: 'Telepatia',                  artist: 'Kali Uchis',                    duration: '3:06' },
+    { id: 19, title: 'Cruel Summer',               artist: 'Taylor Swift',                  duration: '2:58' },
+    { id: 20, title: 'Anti-Hero',                  artist: 'Taylor Swift',                  duration: '3:20' },
+    { id: 21, title: 'As It Was',                  artist: 'Harry Styles',                  duration: '2:37' },
+    { id: 22, title: 'Easy On Me',                 artist: 'Adele',                         duration: '3:44' },
+    { id: 23, title: 'Shivers',                    artist: 'Ed Sheeran',                    duration: '3:27' },
+    { id: 24, title: 'Beggin',                     artist: 'Maneskin',                      duration: '3:33' },
+  ];
+
+  handleLogin = () => {
+    const { email, password } = this.state;
+    if (!email || !password) {
+      this.setState({ loginError: 'Please fill in both fields.' });
+      return;
+    }
+    if (!email.includes('@')) {
+      this.setState({ loginError: 'Please enter a valid email address.' });
+      return;
+    }
+    this.setState({ page: 'landing', loginError: '' });
+  };
+
+  handleSignup = () => {
+    const { signupName, signupLastName, signupEmail, signupPassword } = this.state;
+    if (!signupName || !signupLastName || !signupEmail || !signupPassword) {
+      this.setState({ signupError: 'Please fill in all fields.' });
+      return;
+    }
+    if (!signupEmail.includes('@')) {
+      this.setState({ signupError: 'Please enter a valid email address.' });
+      return;
+    }
+    this.setState({ page: 'landing', signupError: '' });
+  };
+
+  handleSearch = () => {
+    const { searchQuery } = this.state;
+    if (!searchQuery.trim()) return;
+    const q = searchQuery.toLowerCase();
+    const results = this.songLibrary.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.artist.toLowerCase().includes(q)
+    );
+    this.setState({ allSearchResults: results, currentPage: 1, hasSearched: true });
+  };
+
+  addSong = (song) => {
+    if (this.state.destinationSongs.find(s => s.id === song.id)) return;
+    this.setState(s => ({
+      destinationSongs: [...s.destinationSongs, { ...song, status: 'queued' }],
+    }));
+    setTimeout(() => {
+      this.setState(s => ({
+        destinationSongs: s.destinationSongs.map(d =>
+          d.id === song.id ? { ...d, status: 'adding' } : d
+        ),
+      }));
+      setTimeout(() => {
+        this.setState(s => ({
+          destinationSongs: s.destinationSongs.map(d =>
+            d.id === song.id ? { ...d, status: 'added' } : d
+          ),
+        }));
+      }, 1800);
+    }, 500);
+  };
+
+  handleRefresh = () => {
+    if (this.state.refreshing) return;
+    this.setState({ refreshing: true });
+    setTimeout(() => this.setState({ refreshing: false }), 1200);
+  };
+
+  handleImageFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => this.setState({ uploadedImage: ev.target.result, detectedSongs: [] });
+    reader.readAsDataURL(file);
+  };
+
+  handleValidateImage = () => {
+    if (this.state.validatingImage) return;
+    this.setState({ validatingImage: true, detectedSongs: [] });
+    setTimeout(() => {
+      this.setState({
+        validatingImage: false,
+        detectedSongs: [
+          { id: 201, title: 'Cruel Summer',  artist: 'Taylor Swift',  confidence: 0.97 },
+          { id: 202, title: 'Anti-Hero',     artist: 'Taylor Swift',  confidence: 0.94 },
+          { id: 203, title: 'As It Was',     artist: 'Harry Styles',  confidence: 0.88 },
+          { id: 204, title: 'Heat Waves',    artist: 'Glass Animals', confidence: 0.73 },
+        ],
+      });
+    }, 2400);
+  };
+
+  renderVals() {
+    const {
+      page, email, password, loginError,
+      signupName, signupLastName, signupEmail, signupPassword, signupError,
+      spotifyConnected, activeTab, searchQuery,
+      allSearchResults, hasSearched, currentPage, resultsPerPage,
+      uploadedImage, isDragging, destinationSongs,
+      refreshing, validatingImage, detectedSongs,
+    } = this.state;
+
+    const rpp = resultsPerPage;
+    const totalPages = Math.max(1, Math.ceil(allSearchResults.length / rpp));
+    const pagedResults = allSearchResults.slice((currentPage - 1) * rpp, currentPage * rpp);
+
+    const srList = pagedResults.map(song => {
+      const isAdded = !!destinationSongs.find(s => s.id === song.id);
+      return {
+        ...song,
+        add: () => this.addSong(song),
+        isAdded,
+        addLabel: isAdded ? '✓ Added' : '+ Add',
+        addBg: isAdded ? 'rgba(29,185,84,0.12)' : 'rgba(29,185,84,0.08)',
+        addBorder: isAdded ? '1px solid rgba(29,185,84,0.35)' : '1px solid rgba(29,185,84,0.18)',
+        addDisabled: isAdded,
+      };
+    });
+
+    const detList = detectedSongs.map(song => {
+      const isAdded = !!destinationSongs.find(s => s.id === song.id);
+      return {
+        ...song,
+        add: () => this.addSong(song),
+        isAdded,
+        addLabel: isAdded ? '✓' : 'Add',
+        confPct: Math.round(song.confidence * 100) + '%',
+        confColor: song.confidence >= 0.9 ? '#1DB954' : song.confidence >= 0.75 ? '#FBBF24' : '#F87171',
+      };
+    });
+
+    const destList = destinationSongs.map(s => ({
+      ...s,
+      statusColor: s.status === 'added' ? '#1DB954' : s.status === 'adding' ? '#FBBF24' : 'rgba(255,255,255,0.4)',
+      statusBg:    s.status === 'added' ? 'rgba(29,185,84,0.1)' : s.status === 'adding' ? 'rgba(251,191,36,0.08)' : 'rgba(255,255,255,0.05)',
+      statusText:  s.status === 'added' ? 'Added ✓' : s.status === 'adding' ? 'Adding…' : 'Queued',
+    }));
+
+    const awaitingValidation = !!uploadedImage && !validatingImage && detectedSongs.length === 0;
+
+    return {
+      // Routing
+      isLogin:   page === 'login',
+      isSignup:  page === 'signup',
+      isLanding: page === 'landing',
+
+      // Login form
+      email, password, loginError,
+      hasLoginError: !!loginError,
+
+      // Signup form
+      signupName, signupLastName, signupEmail, signupPassword, signupError,
+      hasSignupError: !!signupError,
+
+      // Spotify banner
+      spotifyConnected,
+      spotifyBannerBg:   spotifyConnected ? 'rgba(29,185,84,0.05)' : 'rgba(255,255,255,0.02)',
+      spotifyStatusText: spotifyConnected
+        ? 'Spotify connected — ready to import your songs.'
+        : 'Connect your Spotify account to start transferring songs.',
+      spotifyStatusColor: spotifyConnected ? '#1DB954' : 'rgba(255,255,255,0.5)',
+      spotifyBtnBg:     spotifyConnected ? 'transparent' : '#1DB954',
+      spotifyBtnBorder: spotifyConnected ? '1px solid #1DB954' : '1px solid #1DB954',
+      spotifyBtnColor:  spotifyConnected ? '#1DB954' : '#000',
+      spotifyBtnLabel:  spotifyConnected ? '✓ Connected' : 'Connect Spotify',
+
+      // Tabs
+      isSearch: activeTab === 'search',
+      isUpload: activeTab === 'upload',
+      searchTabBg:    activeTab === 'search' ? 'rgba(255,255,255,0.09)' : 'transparent',
+      searchTabColor: activeTab === 'search' ? '#fff' : 'rgba(255,255,255,0.4)',
+      uploadTabBg:    activeTab === 'upload' ? 'rgba(255,255,255,0.09)' : 'transparent',
+      uploadTabColor: activeTab === 'upload' ? '#fff' : 'rgba(255,255,255,0.4)',
+
+      // Search
+      searchQuery,
+      hasResults:       allSearchResults.length > 0,
+      noResults:        hasSearched && allSearchResults.length === 0,
+      showInitialSearch: !hasSearched,
+      searchResults:    srList,
+      allResultsCount:  allSearchResults.length,
+      currentPage, totalPages,
+      prevDisabled: currentPage <= 1,
+      nextDisabled: currentPage >= totalPages,
+
+      // Upload
+      uploadedImage: uploadedImage || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+      isDragging,
+      hasUploadedImage: !!uploadedImage,
+      noUploadedImage:  !uploadedImage,
+      dropZoneBg:     isDragging ? 'rgba(29,185,84,0.06)' : 'rgba(255,255,255,0.02)',
+      dropZoneBorder: isDragging ? '1.5px dashed rgba(29,185,84,0.5)' : '1.5px dashed rgba(255,255,255,0.1)',
+      validatingImage,
+      validateBtnLabel:   validatingImage ? 'Analysing screenshot…' : 'Validate with AI',
+      validateBtnDisabled: validatingImage,
+      validateAnim:        validatingImage ? 'pulse 1.2s ease-in-out infinite' : 'none',
+      awaitingValidation,
+      hasDetectedSongs: detectedSongs.length > 0,
+      detectedSongs:    detList,
+
+      // Destination
+      destinationSongs:    destList,
+      hasDestinationSongs: destinationSongs.length > 0,
+      noDestinationSongs:  destinationSongs.length === 0,
+      destCount:           destinationSongs.length,
+      addedCount:          destinationSongs.filter(s => s.status === 'added').length,
+      refreshSpin:         refreshing ? 'spin 1s linear infinite' : 'none',
+
+      // Handlers
+      onEmailChange:    (e) => this.setState({ email: e.target.value }),
+      onPasswordChange: (e) => this.setState({ password: e.target.value }),
+      onLoginKeyDown:   (e) => { if (e.key === 'Enter') this.handleLogin(); },
+      onLogin:          this.handleLogin,
+      onGoSignup: () => this.setState({ page: 'signup', signupError: '' }),
+      onGoLogin:  () => this.setState({ page: 'login', loginError: '' }),
+      onSignupNameChange:     (e) => this.setState({ signupName: e.target.value }),
+      onSignupLastNameChange: (e) => this.setState({ signupLastName: e.target.value }),
+      onSignupEmailChange:    (e) => this.setState({ signupEmail: e.target.value }),
+      onSignupPasswordChange: (e) => this.setState({ signupPassword: e.target.value }),
+      onSignup: this.handleSignup,
+      onLogout: () => this.setState({
+        page: 'login', email: '', password: '', loginError: '',
+        spotifyConnected: false, allSearchResults: [], hasSearched: false,
+        destinationSongs: [], uploadedImage: null, detectedSongs: [], searchQuery: '',
+      }),
+      onToggleSpotify: () => this.setState(s => ({ spotifyConnected: !s.spotifyConnected })),
+      onSearchTab: () => this.setState({ activeTab: 'search' }),
+      onUploadTab: () => this.setState({ activeTab: 'upload' }),
+      onQueryChange:    (e) => this.setState({ searchQuery: e.target.value }),
+      onSearchKeyDown:  (e) => { if (e.key === 'Enter') this.handleSearch(); },
+      onSearch:         this.handleSearch,
+      onPrev: () => this.setState(s => ({ currentPage: s.currentPage - 1 })),
+      onNext: () => this.setState(s => ({ currentPage: s.currentPage + 1 })),
+      onDragOver:  (e) => { e.preventDefault(); this.setState({ isDragging: true }); },
+      onDragLeave: ()  => this.setState({ isDragging: false }),
+      onDrop: (e) => {
+        e.preventDefault();
+        this.setState({ isDragging: false });
+        this.handleImageFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+      },
+      onFileChange: (e) => this.handleImageFile(e.target.files && e.target.files[0]),
+      onClearImage: () => this.setState({ uploadedImage: null, detectedSongs: [] }),
+      onValidate:   this.handleValidateImage,
+      onRefresh:    this.handleRefresh,
+    };
+  }
+}
+</script>
+</body>
+</html>
