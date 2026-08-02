@@ -15,7 +15,8 @@ import styles from './Landing.module.css';
 import { persistor } from '../../store/store';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setUser, clearUser } from '../../store/features/userSlice';
-import { useBlocker, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
 export function Landing({
   onConnectSpotify,
@@ -27,8 +28,8 @@ export function Landing({
 }: LandingProps) {
   const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
   const { name, email, isSpotifyConnected: userIsSpotifyConnected, token } = useAppSelector((state) => state.user);
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-
   const dispatch = useAppDispatch()
 
   const handleToggleSpotify = () => {
@@ -40,22 +41,18 @@ export function Landing({
     }
   };
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      currentLocation.pathname !== nextLocation.pathname
-  );
-  console.log({ blocker });
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
 
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   const handleLogout = () => {
     dispatch(clearUser());
     persistor.purge();
     navigate('/login');
-    if (onLogout) {
-      onLogout();
-    } else {
-      console.log('onLogout not implemented');
-    }
   };
 
   return (
@@ -71,9 +68,31 @@ export function Landing({
           <span>
             {name}
           </span>
-          <Button variant="outlined" data-testid="logout" onClick={handleLogout}>
+          <Button variant="outlined" data-testid="logout" onClick={handleClickOpen}>
             Log out
           </Button>
+          <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+            role="alertdialog"
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Are you sure you want to logout?"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                By logging out, you will be redirected to the login page.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleLogout}>Yes</Button>
+              <Button onClick={handleClose} autoFocus>
+                No
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       </nav>
 

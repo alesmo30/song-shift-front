@@ -4,6 +4,7 @@ import { Signup } from './pages/Signup/Signup';
 import { Landing } from './pages/Landing/Landing';
 import { NotFound } from './pages/NotFound/NotFound';
 import { PrivateRoutes } from './route-protection/PrivateRoutes';
+import { PublicOnlyRoutes } from './route-protection/PublicOnlyRoutes';
 
 export function App() {
   return (
@@ -12,8 +13,10 @@ export function App() {
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Landing />} />
         </Route>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route element={<PublicOnlyRoutes />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
