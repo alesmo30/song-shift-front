@@ -7,6 +7,10 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { store, persistor } from './store/store'
 import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
 import { totifyTheme } from './theme/theme'
+import { injectStore } from './api/client'
+
+// Inyectamos el store al cliente de Axios para evitar dependencias circulares
+injectStore(store)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

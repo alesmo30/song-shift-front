@@ -3,6 +3,8 @@ import Card from '@mui/material/Card';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import type { LoginFormProps } from '../../types/callbacks';
 import logoMark from '../../assets/logo-mark.png';
 import styles from './Login.module.css';
@@ -11,35 +13,29 @@ import { extractError } from '../../helpers/error-login-validation';
 import { useState } from 'react';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/features/userSlice';
+import { get } from 'lodash';
+import { loginUser } from '../../api/auth.service';
 
 
 export function Login({ onLogin }: LoginFormProps) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const simulatingOnLogin = async (email: string, password: string) => {
-    setIsSubmitting(true);
-    const promise = await Promise.resolve(() => {
-      return setTimeout(() => {
-        setIsSubmitting(false);
-        // MOCK — quitar
-        dispatch(setUser({ name: email.split('@')[0], email, isSpotifyConnected: true, token: 'mock-token' }));
-        navigate('/');
-      }, 5000);
-    });
-
-    if (onLogin) {
-      onLogin(email, password);
-    } else {
-      console.log('onLogin not implemented', { email, password });
-    }
-
-    await promise();
-  };
 
   const onHandleSubmit = async ({ email, password }: Record<string, any>) => {
-    await simulatingOnLogin(email, password);
+    setIsSubmitting(true);
+    try {
+      const { user: { name, lastName, email: userEmail }, accessToken } = await loginUser({ email, password });
+      dispatch(setUser({ name: `${name} ${lastName}`, email: userEmail, isSpotifyConnected: false, token: accessToken }));
+      navigate('/');
+    } catch (error) {
+      const apiMessage = get(error, 'response.data.message', 'Problems trying to sign in. Please verify your credentials.');
+      setErrorMessage(apiMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,6 +98,22 @@ export function Login({ onLogin }: LoginFormProps) {
           Don't have an account? <Link to="/signup">Sign up free</Link>
         </p>
       </Card>
+
+      <Snackbar
+        open={Boolean(errorMessage)}
+        autoHideDuration={4000}
+        onClose={() => setErrorMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setErrorMessage(null)}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

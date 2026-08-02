@@ -15,7 +15,7 @@ import styles from './Landing.module.css';
 import { persistor } from '../../store/store';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setUser, clearUser } from '../../store/features/userSlice';
-import { useNavigate } from 'react-router-dom';
+import { useBlocker, useLocation, useNavigate } from 'react-router-dom';
 
 export function Landing({
   onConnectSpotify,
@@ -39,6 +39,13 @@ export function Landing({
       console.log('onConnectSpotify not implemented');
     }
   };
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      currentLocation.pathname !== nextLocation.pathname
+  );
+  console.log({ blocker });
+
 
   const handleLogout = () => {
     dispatch(clearUser());
