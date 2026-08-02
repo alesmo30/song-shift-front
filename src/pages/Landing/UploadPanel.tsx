@@ -79,7 +79,7 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
           onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
         >
-          <input type="file" accept="image/*" onChange={handleFileChange} className={styles.dropZoneInput} />
+          <input type="file" accept="image/*" data-testid="upload-input" onChange={handleFileChange} className={styles.dropZoneInput} />
           <p className={styles.emptyTitle}>Drop your Apple Music screenshot</p>
           <p className={styles.emptyHint}>or click to browse — PNG, JPG supported</p>
         </div>
@@ -88,13 +88,14 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
       {image && (
         <div className={styles.uploadedWrap}>
           <div className={styles.preview} style={{ backgroundImage: `url(${image})` }}>
-            <button className={styles.clearBtn} onClick={handleClear}>
+            <button className={styles.clearBtn} data-testid="clear-image" onClick={handleClear}>
               ×
             </button>
           </div>
 
           <button
             className={styles.validateBtn}
+            data-testid="validate-ai"
             disabled={isValidating}
             onClick={handleValidate}
           >
@@ -115,6 +116,7 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
                   </span>
                   <button
                     className={styles.addBtn}
+                    data-testid="add-detected-song"
                     disabled={addedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >

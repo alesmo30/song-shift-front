@@ -61,7 +61,7 @@ export function Landing({
           <span>
             {name}
           </span>
-          <button className="t-btn-secondary" onClick={handleLogout}>
+          <button className="t-btn-secondary" data-testid="logout" onClick={handleLogout}>
             Log out
           </button>
         </div>
@@ -76,6 +76,7 @@ export function Landing({
         </div>
         <button
           className={userIsSpotifyConnected ? styles.bannerBtnConnected : styles.bannerBtnDisconnected}
+          data-testid="spotify-toggle"
           onClick={handleToggleSpotify}
         >
           {userIsSpotifyConnected ? '✓ Connected' : 'Connect Spotify'}

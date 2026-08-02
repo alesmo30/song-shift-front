@@ -20,6 +20,7 @@ export function Tabs({ tabs, activeId, onChange }: TabsProps) {
         <button
           key={tab.id}
           type="button"
+          data-testid={`tab-${tab.id}`}
           className={`${styles.tab} ${tab.id === activeId ? styles.active : ''}`}
           onClick={() => onChange(tab.id)}
         >

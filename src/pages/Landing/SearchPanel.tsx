@@ -54,13 +54,14 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
       <div className={styles.searchRow}>
         <input
           className="t-input"
+          data-testid="search-input"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           placeholder="Song title, artist, or album…"
         />
-        <button className={styles.searchBtn} onClick={handleSearch}>
+        <button className={styles.searchBtn} data-testid="search-submit" onClick={handleSearch}>
           Search
         </button>
       </div>
@@ -99,6 +100,7 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
                 action={
                   <button
                     className={styles.addBtn}
+                    data-testid="add-song"
                     disabled={addedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >
@@ -109,13 +111,13 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
             ))}
           </div>
           <div className={styles.pagination}>
-            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <button data-testid="page-prev" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
               ← Prev
             </button>
             <span>
               {page} / {totalPages}
             </span>
-            <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <button data-testid="page-next" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
               Next →
             </button>
           </div>

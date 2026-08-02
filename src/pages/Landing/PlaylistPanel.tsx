@@ -41,7 +41,7 @@ export function PlaylistPanel({ onRefreshPlaylist }: PlaylistPanelProps) {
             </p>
           </div>
         </div>
-        <button className={styles.refreshBtn} onClick={handleRefresh}>
+        <button className={styles.refreshBtn} data-testid="refresh-playlist" onClick={handleRefresh}>
           <span className={isSpinning ? styles.spinning : ''}>
             <RefreshIcon size={15} />
           </span>
