@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '../../components/Card/Card';
 import { Input } from '../../components/Input/Input';
 import { Button } from '../../components/Button/Button';
@@ -6,19 +6,39 @@ import type { LoginFormProps } from '../../types/callbacks';
 import logoMark from '../../assets/logo-mark.png';
 import styles from './Login.module.css';
 import { ErrorMessage, Formik } from 'formik';
-import { isEmpty, isNil } from 'lodash';
 import { ErrorSpan } from '../../components/ErrorSpan/ErrorSpan';
+import { extractError } from '../../helpers/error-login-validation';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../store/features/userSlice';
 
 
-export function Login({ onLogin, error }: LoginFormProps) {
+export function Login({ onLogin }: LoginFormProps) {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onHandleSubmit = ({ email, password }: Record<string, any>) => {
+  const simulatingOnLogin = async (email: string, password: string) => {
+    setIsSubmitting(true);
+    const promise = await Promise.resolve(() => {
+      return setTimeout(() => {
+        setIsSubmitting(false);
+        dispatch(setUser({ name: email.split('@')[0], email, isSpotifyConnected: true }));
+        navigate('/');
+      }, 5000);
+    });
 
     if (onLogin) {
       onLogin(email, password);
     } else {
       console.log('onLogin not implemented', { email, password });
     }
+
+    await promise();
+  };
+
+  const onHandleSubmit = async ({ email, password }: Record<string, any>) => {
+    await simulatingOnLogin(email, password);
   };
 
   return (
@@ -32,17 +52,7 @@ export function Login({ onLogin, error }: LoginFormProps) {
         </div>
         <p className={styles.subtitle}>Bridge your Apple Music library to Spotify — effortlessly.</p>
         <Formik initialValues={{ email: '', password: '' }} onSubmit={onHandleSubmit} validate={values => {
-          const errors: any = {};
-          const { email, password } = values;
-          if (isNil(email) || isEmpty(email)) {
-            errors.email = 'Email is required';
-          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            errors.email = 'Invalid email address';
-          }
-          if (isNil(password) || isEmpty(password)) {
-            errors.password = 'Password is required';
-          }
-          return errors;
+          return extractError(values.email, values.password);
         }}>
           {({ values, handleChange, handleSubmit }) => (
             <form onSubmit={handleSubmit}>
@@ -66,8 +76,8 @@ export function Login({ onLogin, error }: LoginFormProps) {
                 />
                 <ErrorMessage name="password" component={ErrorSpan} />
                 {/* agregar estado del proceso de evaluacion de usuario en db */}
-                <Button type="submit" className={styles.submit}>
-                  Sign In
+                <Button disabled={isSubmitting} loading={isSubmitting} type="submit" className={styles.submit}>
+                  {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
               </div>
             </form>

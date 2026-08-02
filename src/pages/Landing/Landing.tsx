@@ -10,9 +10,12 @@ import { SearchPanel } from './SearchPanel';
 import { UploadPanel } from './UploadPanel';
 import { PlaylistPanel } from './PlaylistPanel';
 import styles from './Landing.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from '../../store/store';
+import { setUser } from '../../store/features/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 export function Landing({
-  spotifyConnected = false,
   onConnectSpotify,
   onLogout,
   onSearch,
@@ -21,10 +24,13 @@ export function Landing({
   onRefreshPlaylist,
 }: LandingProps) {
   const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
-  const [connected, setConnected] = useState(spotifyConnected);
+  const { name, email, isSpotifyConnected: userIsSpotifyConnected } = useSelector((state: RootState) => state.user);
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch()
 
   const handleToggleSpotify = () => {
-    setConnected((prev) => !prev);
+    dispatch(setUser({ name, email, isSpotifyConnected: !userIsSpotifyConnected }))
     if (onConnectSpotify) {
       onConnectSpotify();
     } else {
@@ -33,6 +39,8 @@ export function Landing({
   };
 
   const handleLogout = () => {
+    dispatch(setUser({ name: "", email: "", isSpotifyConnected: false }))
+    navigate('/login');
     if (onLogout) {
       onLogout();
     } else {
@@ -49,23 +57,28 @@ export function Landing({
             totify
           </span>
         </div>
-        <button className="t-btn-secondary" onClick={handleLogout}>
-          Log out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: 'var(--space-6)' }}>
+          <span>
+            {name}
+          </span>
+          <button className="t-btn-secondary" onClick={handleLogout}>
+            Log out
+          </button>
+        </div>
       </nav>
 
-      <div className={`${styles.banner} ${connected ? styles.bannerConnected : ''}`}>
+      <div className={`${styles.banner} ${userIsSpotifyConnected ? styles.bannerConnected : ''}`}>
         <div className={styles.bannerLeft}>
           <div className={styles.spotifyGlyph}>
             <SpotifyIcon size={18} color="#ffffff" />
           </div>
-          <p className={styles.bannerStatus}>{connected ? 'Spotify connected' : 'Spotify not connected'}</p>
+          <p className={styles.bannerStatus}>{userIsSpotifyConnected ? 'Spotify connected' : 'Spotify not connected'}</p>
         </div>
         <button
-          className={connected ? styles.bannerBtnConnected : styles.bannerBtnDisconnected}
+          className={userIsSpotifyConnected ? styles.bannerBtnConnected : styles.bannerBtnDisconnected}
           onClick={handleToggleSpotify}
         >
-          {connected ? '✓ Connected' : 'Connect Spotify'}
+          {userIsSpotifyConnected ? '✓ Connected' : 'Connect Spotify'}
         </button>
       </div>
 
