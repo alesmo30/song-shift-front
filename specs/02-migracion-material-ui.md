@@ -1,6 +1,6 @@
 # 02 — Migración a Material UI (Totify frontend)
 
-**Estado:** Aprobado
+**Estado:** Implementado
 **Depende de:** `specs/01-visual-scaffold-auth-landing.md` (Implementado)
 **Fecha:** 2026-08-01
 
@@ -81,22 +81,22 @@ Cada paso deja la app funcionando y tipando (`npm run build`).
 
 ## Acceptance Criteria
 
-- [ ] `npm run build` (`tsc -b` + `vite build`) pasa sin errores.
-- [ ] `npm run lint` pasa sin errores nuevos.
-- [ ] `npx playwright test` pasa completo contra las baselines capturadas en el paso 1; cada diff aceptado está justificado por escrito en el PR.
-- [ ] `src/components/Button/`, `Input/`, `Card/`, `Tabs/` y `ErrorSpan/` están eliminados; sus consumidores importan MUI directamente.
-- [ ] Los únicos wrappers que quedan en `src/components/` son `StatusPill` y `SongRow`, y cada uno justifica su existencia con lógica de dominio (mapeo de `DestinationStatus` / composición del tipo `Song`).
-- [ ] `src/components/` no contiene ningún `<button>`, `<input>` ni `<div>`-como-card propio: todo delega en MUI.
-- [ ] `Landing.tsx`, `SearchPanel.tsx`, `UploadPanel.tsx`, `PlaylistPanel.tsx` no contienen elementos `<button>` nativos.
-- [ ] Los tabs Search/Upload exponen `role="tablist"`/`role="tab"` con `aria-selected` correcto.
-- [ ] Cada campo de Login y Signup enlaza su mensaje de error vía `aria-describedby` y marca `aria-invalid` cuando es inválido.
-- [ ] Los botones-icono (refresh, clear) tienen nombre accesible (`getByRole('button', { name: ... })` los encuentra).
-- [ ] `src/components/ErrorSpan/` está eliminado y no queda ninguna importación suya.
-- [ ] `global.css` conserva todos los tokens `--*` sin cambios de valor.
-- [ ] `src/main.tsx` monta `ThemeProvider` y **no** monta `CssBaseline`.
-- [ ] `SpotifyIcon` sigue renderizando el glyph original (envuelto en `SvgIcon`).
-- [ ] Los mocks siguen marcados con `// MOCK — quitar` y los empty states se mantienen.
-- [ ] Cero llamadas reales a APIs externas: la migración no toca lógica.
+- [x] `npm run build` (`tsc -b` + `vite build`) pasa sin errores.
+- [x] `npm run lint` pasa sin errores nuevos.
+- [x] `npx playwright test` pasa completo contra las baselines capturadas en el paso 1; cada diff aceptado está justificado por escrito en el PR.
+- [x] `src/components/Button/`, `Input/`, `Card/`, `Tabs/` y `ErrorSpan/` están eliminados; sus consumidores importan MUI directamente.
+- [x] Los únicos wrappers que quedan en `src/components/` son `StatusPill` y `SongRow`, y cada uno justifica su existencia con lógica de dominio (mapeo de `DestinationStatus` / composición del tipo `Song`).
+- [x] `src/components/` no contiene ningún `<button>`, `<input>` ni `<div>`-como-card propio: todo delega en MUI.
+- [x] `Landing.tsx`, `SearchPanel.tsx`, `UploadPanel.tsx`, `PlaylistPanel.tsx` no contienen elementos `<button>` nativos.
+- [x] Los tabs Search/Upload exponen `role="tablist"`/`role="tab"` con `aria-selected` correcto.
+- [x] Cada campo de Login y Signup enlaza su mensaje de error vía `aria-describedby` y marca `aria-invalid` cuando es inválido.
+- [x] Los botones-icono (refresh, clear) tienen nombre accesible (`getByRole('button', { name: ... })` los encuentra).
+- [x] `src/components/ErrorSpan/` está eliminado y no queda ninguna importación suya.
+- [x] `global.css` conserva todos los tokens `--*` sin cambios de valor.
+- [x] `src/main.tsx` monta `ThemeProvider` y **no** monta `CssBaseline`.
+- [x] `SpotifyIcon` sigue renderizando el glyph original (envuelto en `SvgIcon`).
+- [x] Los mocks siguen marcados con `// MOCK — quitar` y los empty states se mantienen.
+- [x] Cero llamadas reales a APIs externas: la migración no toca lógica.
 
 ## Decisiones tomadas y descartadas
 
@@ -117,6 +117,19 @@ Cada paso deja la app funcionando y tipando (`npm run build`).
 - **`backdrop-filter` de `.t-card`** ya venía sin fallback definido desde el spec 01; pasarlo al theme no lo arregla.
 - **Peso del bundle**: MUI + icons suma un tamaño no trivial. Importar siempre por ruta directa (`@mui/icons-material/Search`), nunca barrel.
 - **El `Button` de MUI renderiza `<span class="MuiTouchRipple-root">`**: el ripple es una animación que puede introducir flakiness en snapshots; desactivarlo en el theme (`disableRipple`) si aparece, decidiéndolo contra las baselines y no a priori.
+
+## Notas de implementación
+
+- **MUI instalado: v9.2.0.** Dos diferencias de API frente a lo previsto en el spec: `TabIndicatorProps` ya no existe (el indicador se oculta con `styleOverrides.indicator`) y la clase del contenedor de `Tabs` pasó de `flexContainer` a `list`.
+- **`StyledEngineProvider injectFirst` se aplicó desde el primer momento**, no como salida de emergencia: los botones de los paneles conservan su CSS Module y necesitan ganarle a Emotion en la cascada.
+- **Diffs visuales aceptados** (los 23 tests pasan dentro de `maxDiffPixelRatio: 0.02`):
+  1. *Icono de refresh*: el glyph propio era de trazo (estilo Lucide); `@mui/icons-material/Refresh` es relleno. Cambio esperado por el paso 7 del plan.
+  2. *Mensajes de error*: antes `color: red` a 16px inline; ahora `.t-error-text` (`--color-error`, `--fs-caption`) vía `helperText`. Se acerca al handoff, no se aleja.
+  3. *Borde de campo con error*: MUI pinta el `notchedOutline` con `--color-error`. Añadido, no había equivalente antes.
+- **`lodash` se conserva**: sigue usándose en `src/helpers/error-*-validation.ts`, así que no se quitó de `package.json`.
+- **Único elemento nativo que queda**: el `<input type="file">` invisible del dropzone (`UploadPanel`), que no tiene componente MUI equivalente — cualquier alternativa sigue siendo un input nativo oculto.
+- **Snapshot `landing-upload-detectadas.png`**: se añadió después de migrar, pero su baseline se capturó volviendo al código pre-migración (`git checkout 6fde03d -- src`) para que la comparación siga siendo contra el estado original.
+- **Tests añadidos sobre lo previsto**: `e2e/a11y.spec.ts` (4 tests) verifica en CI los criterios de accesibilidad del spec. Total: 23 tests, 14 snapshots.
 
 ## Verificación
 

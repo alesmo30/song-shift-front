@@ -15,7 +15,12 @@ npm run lint      # eslint .
 npm run preview   # preview production build
 ```
 
-There is no test runner configured (no test script, no test files) — this spec's acceptance criteria explicitly excluded automated tests.
+```bash
+npm run test:e2e         # playwright test (regresión visual + funcional)
+npm run test:e2e:update  # regenera snapshots — solo tras revisar cada diff
+```
+
+There is no unit test runner (no Jest/Vitest). The only automated tests are the Playwright suite in `e2e/`, added by spec 02: 23 tests and 14 screenshot baselines in `e2e/__screenshots__/`, run against `npm run dev` via `playwright.config.ts` (`maxDiffPixelRatio: 0.02`, animations disabled, fonts awaited). Interactive elements carry stable `data-testid` hooks so selectors survive component swaps.
 
 ## Spec-driven workflow
 
@@ -24,10 +29,11 @@ This project uses a spec-kit workflow: feature specs live in `specs/NN-slug.md` 
 ## Architecture
 
 - **Routing**: `src/App.tsx` uses `react-router-dom` v6 classic API (`<BrowserRouter>/<Routes>/<Route>`), not v7 data routers. Three routes: `/login`, `/signup`, `/` (Landing). No auth guards — Landing is reachable directly.
-- **Styling**: CSS Modules per component (`Component.module.css`) layered on top of `src/styles/global.css`, which holds design tokens (CSS custom properties like `--color-error`, `--fs-display-lg`, `--tracking-display`) and global utility classes prefixed `t-` (e.g. `t-btn-primary`, `t-wordmark`). This is a deliberate choice over Tailwind — the design handoff already ships tokens/utilities in this form. When styling, prefer existing `--*` tokens and `t-*` classes over inventing new values.
-- **Forms**: Built with Formik. Field-level errors render through `src/components/ErrorSpan/ErrorSpan.tsx` via Formik's `<ErrorMessage component={ErrorSpan} />` pattern — validation is synchronous and client-side only (e.g. required fields, email regex), never hits a backend.
+- **UI library**: Material UI v9 (spec 02). Components come from MUI; their Totify look lives in `src/theme/theme.ts`, mounted in `main.tsx` inside `<StyledEngineProvider injectFirst><ThemeProvider>`. `injectFirst` is load-bearing: MUI's styles are injected first so `global.css` and the CSS Modules keep winning the cascade. There is deliberately **no** `CssBaseline` — `global.css` already resets and paints the body. Before hand-rolling any control, use the MUI equivalent; only wrap it when there is domain logic to map (see `StatusPill`, `SongRow`).
+- **Styling**: two layers. (1) `src/styles/global.css` holds the design tokens (CSS custom properties like `--color-error`, `--fs-display-lg`, `--tracking-display`) plus the surviving utility classes `t-heading`, `t-wordmark`, `t-panel`, `t-row`, `t-error-text`; the tokens are the single source of truth and the theme references them with `var(--*)`. (2) CSS Modules per component/page (`Component.module.css`) for layout only. Deliberately not Tailwind — the design handoff ships tokens in this form. When styling, reach for existing `--*` tokens before inventing values, and add component looks to the theme rather than to new CSS.
+- **Forms**: Built with Formik + MUI `TextField`. Field errors are wired with `error={Boolean(touched.x && errors.x)}` and `helperText`, so MUI links them to the input via `aria-describedby`/`aria-invalid`. Validation is synchronous and client-side only (`src/helpers/error-*-validation.ts`: required fields, email regex), never hits a backend.
 - **Callback-stub contract**: Page components accept typed optional callback props defined centrally in `src/types/callbacks.ts` (`LoginFormProps`, `SignupFormProps`, `LandingProps`). Every page falls back to a `console.log(...)` no-op when a callback isn't supplied, so pages render standalone before real logic (auth, Spotify, AI) is connected. When adding a new stubbed interaction, follow this pattern: add the callback's type to `callbacks.ts`, accept it as an optional prop, and no-op with `console.log` by default.
 - **Mock data**: Inline in the component that uses it (e.g. `src/pages/Landing/mockData.ts`), tagged with the comment `// MOCK — quitar` so it's easy to find and delete once real data wiring exists. Preserve this tag convention on any new mock data.
 - **Domain types**: Split by concern in `src/types/` — `song.ts` (Song, DetectedSong, DestinationSong, DestinationStatus), `user.ts` (User), `callbacks.ts` (prop contracts described above).
 - **`src/references/`**: design handoff material (mockups, screenshots, the original `Totify.dc.html`, source assets) — not part of the production build. Production assets live in `src/assets/`; don't import from `references/` in app code.
-- **Shared components** (`src/components/`): `Button`, `Input`, `Card`, `Tabs`, `StatusPill`, `SongRow`, `ErrorSpan`, plus one-off icon components in `components/icons/`. Reuse these instead of inlining new buttons/inputs/cards.
+- **Shared components** (`src/components/`): only two, and both exist because they map domain types, not because they restyle MUI — `StatusPill` (`DestinationStatus` → label + colour, over `Chip`) and `SongRow` (`Song` → title/artist/duration row, over `ListItem`). Everything else imports MUI directly. `components/icons/` keeps a single icon, `SpotifyIcon`, because Material Icons has no Spotify logo; it is a `SvgIcon` wrapper around the handoff glyph. Generic icons come from `@mui/icons-material` — import by direct path (`@mui/icons-material/Search`), never from the barrel.
