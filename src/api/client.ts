@@ -40,8 +40,10 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Si recibimos un 401 (No autorizado) y no hemos reintentado esta petición antes
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Si recibimos un 401 y la petición NO fue a /login ni a /renew-tokens
+    const isAuthEndpoint = originalRequest.url?.includes('/login') || originalRequest.url?.includes('/renew-tokens');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       try {

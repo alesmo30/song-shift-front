@@ -3,36 +3,36 @@ import Card from '@mui/material/Card';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import type { SignupFormProps } from '../../types/callbacks';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import logoMark from '../../assets/logo-mark.png';
 import styles from './Signup.module.css';
 import { Formik } from 'formik';
 import { extractError } from '../../helpers/error-signup-validation';
 import { useState } from 'react';
+import get from 'lodash/get';
+import { useAppDispatch } from '../../store/hooks';
+import { setUser } from '../../store/features/userSlice';
+import { registerUser } from '../../api/auth.service';
 
-export function Signup({ onSignup, error }: SignupFormProps) {
+export function Signup() {
   let navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-  const simulatingOnSignup = async () => {
-    setIsSubmitting(true);
-    const promise = await Promise.resolve(() => {
-      return setTimeout(() => {
-        setIsSubmitting(false);
-        navigate('/');
-      }, 5000);
-    });
-
-    await promise();
-  };
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const onHandleSubmit = async ({ name, lastName, email, password }: Record<string, any>) => {
-    console.log({ name, lastName, email, password });
-    if (onSignup) {
-      onSignup({ name, lastName, email, password });
+    setIsSubmitting(true);
+    try {
+      const { user: { name: userName, lastName: userLastName, email: userEmail }, accessToken } = await registerUser({ name, lastName, email, password });
+      dispatch(setUser({ name: `${userName} ${userLastName}`, email: userEmail, isSpotifyConnected: false, token: accessToken }));
+      setIsSubmitting(false);
+      navigate('/');
+    } catch (error) {
+      setIsSubmitting(false);
+      const apiMessage = get(error, 'response.data.message', 'Problems trying to sign up. Please try again.');
+      setErrorMessage(apiMessage);
     }
-    await simulatingOnSignup();
   };
 
   return (
@@ -97,7 +97,6 @@ export function Signup({ onSignup, error }: SignupFormProps) {
                   error={Boolean(touched.password && errors.password)}
                   helperText={touched.password && errors.password ? errors.password : undefined}
                 />
-                {error && <p className="t-error-text">{error}</p>}
                 <Button
                   variant="contained"
                   type="submit"
@@ -118,6 +117,22 @@ export function Signup({ onSignup, error }: SignupFormProps) {
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </Card>
+
+      <Snackbar
+        open={Boolean(errorMessage)}
+        autoHideDuration={4000}
+        onClose={() => setErrorMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setErrorMessage(null)}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
