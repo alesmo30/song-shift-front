@@ -1,4 +1,7 @@
 import { useState, type ChangeEvent, type DragEvent } from 'react';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import type { DetectedSong, Song } from '../../types/song';
 import { MOCK_DETECTED_SONGS } from './mockData'; // MOCK — quitar
 import styles from './Landing.module.css';
@@ -88,19 +91,25 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
       {image && (
         <div className={styles.uploadedWrap}>
           <div className={styles.preview} style={{ backgroundImage: `url(${image})` }}>
-            <button className={styles.clearBtn} data-testid="clear-image" onClick={handleClear}>
-              ×
-            </button>
+            <IconButton
+              className={styles.clearBtn}
+              data-testid="clear-image"
+              aria-label="Remove image"
+              onClick={handleClear}
+            >
+              <CloseIcon sx={{ fontSize: 16 }} />
+            </IconButton>
           </div>
 
-          <button
+          <Button
+            variant="text"
             className={styles.validateBtn}
             data-testid="validate-ai"
             disabled={isValidating}
             onClick={handleValidate}
           >
             {isValidating ? 'Validating…' : 'Validate with AI'}
-          </button>
+          </Button>
 
           {detectedSongs && (
             <div className={styles.resultsList}>
@@ -114,14 +123,15 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
                   <span style={{ color: confidenceColor(song.confidence), fontSize: '11px', fontWeight: 700 }}>
                     {song.confidence}%
                   </span>
-                  <button
+                  <Button
+                    variant="text"
                     className={styles.addBtn}
                     data-testid="add-detected-song"
                     disabled={addedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >
                     {addedIds.has(song.id) ? '✓' : 'Add'}
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>

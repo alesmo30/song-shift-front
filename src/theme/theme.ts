@@ -223,13 +223,14 @@ export const totifyTheme = createTheme({
       styleOverrides: {
         root: {
           height: 'auto',
+          padding: 0,
           borderRadius: 'var(--radius-xxs)',
           fontFamily: 'var(--font-body)',
           fontSize: 'var(--fs-micro)',
           fontWeight: 'var(--fw-semibold)',
           whiteSpace: 'nowrap',
+          '& .MuiChip-label': { padding: 'var(--space-1) var(--space-4)' },
         },
-        label: { padding: 'var(--space-1) var(--space-4)' },
       },
     },
 

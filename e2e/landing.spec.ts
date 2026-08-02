@@ -94,6 +94,20 @@ test.describe('Landing', () => {
     await expect(page.getByRole('heading', { name: 'Spotify Playlist' })).toBeVisible();
   });
 
+  test('el flujo de upload muestra preview, validación y canciones detectadas', async ({ page }) => {
+    await gotoStable(page, '/');
+    await page.getByTestId('tab-upload').click();
+    await page.getByTestId('upload-input').setInputFiles('src/assets/logo-mark.png');
+    await expect(page.getByTestId('clear-image')).toBeVisible();
+    await page.getByTestId('validate-ai').click();
+    await expect(page.getByText('AI detected these songs — confirm before adding:')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('add-detected-song')).toHaveCount(4);
+    await freeze(page);
+    await expect(page).toHaveScreenshot('landing-upload-detectadas.png');
+    await page.getByTestId('clear-image').click();
+    await expect(page.getByText('Drop your Apple Music screenshot')).toBeVisible();
+  });
+
   test('logout navega a /login', async ({ page }) => {
     await gotoStable(page, '/');
     await page.getByTestId('logout').click();

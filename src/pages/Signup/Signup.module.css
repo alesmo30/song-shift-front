@@ -56,3 +56,10 @@
   font-size: var(--fs-caption);
   color: var(--color-text-muted-3);
 }
+
+.card {
+  width: var(--auth-card-width);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-12) 44px;
+}

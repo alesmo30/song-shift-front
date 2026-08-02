@@ -187,21 +187,6 @@ a:hover {
   font-weight: var(--fw-extrabold);
 }
 
-.t-label {
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-semibold);
-  color: var(--color-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-
-.t-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-card-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: var(--blur-card);
-}
-
 .t-panel {
   background: var(--color-panel);
   border: 1px solid var(--color-panel-border);
@@ -212,50 +197,6 @@ a:hover {
   background: var(--color-row);
   border: 1px solid var(--color-row-border);
   border-radius: var(--radius-sm);
-}
-
-.t-input {
-  background: var(--color-input-bg);
-  border: 1px solid var(--color-input-border);
-  border-radius: var(--radius-input);
-  padding: 13px var(--space-7);
-  font-size: var(--fs-body);
-  color: var(--color-text);
-}
-
-.t-btn-primary {
-  background: var(--gradient-brand-cta);
-  border: none;
-  border-radius: var(--radius-input);
-  padding: 15px;
-  color: #fff;
-  font-size: var(--fs-body-lg);
-  font-weight: var(--fw-semibold);
-  box-shadow: var(--shadow-brand-cta);
-  transition: filter var(--transition-fast);
-}
-
-.t-btn-primary:hover {
-  filter: brightness(1.06);
-}
-
-.t-btn-secondary {
-  background: var(--color-chip-bg);
-  border: 1px solid var(--color-chip-border);
-  border-radius: var(--radius-xs);
-  padding: 7px var(--space-8);
-  color: var(--color-text-muted-1);
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-medium);
-}
-
-.t-pill-success {
-  background: var(--color-spotify-bg);
-  border: 1px solid var(--color-spotify-border);
-  border-radius: var(--radius-xxs);
-  color: var(--color-spotify);
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-semibold);
 }
 
 .t-error-text {

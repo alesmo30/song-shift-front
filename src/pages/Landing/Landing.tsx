@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Tabs } from '../../components/Tabs/Tabs';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Button from '@mui/material/Button';
+import SearchIcon from '@mui/icons-material/Search';
+import ImageIcon from '@mui/icons-material/Image';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import { SpotifyIcon } from '../../components/icons/SpotifyIcon';
-import { NoteIcon } from '../../components/icons/NoteIcon';
-import { SearchIcon } from '../../components/icons/SearchIcon';
-import { ImageIcon } from '../../components/icons/ImageIcon';
 import type { LandingProps } from '../../types/callbacks';
 import logoMark from '../../assets/logo-mark.png';
 import { SearchPanel } from './SearchPanel';
@@ -61,9 +63,9 @@ export function Landing({
           <span>
             {name}
           </span>
-          <button className="t-btn-secondary" data-testid="logout" onClick={handleLogout}>
+          <Button variant="outlined" data-testid="logout" onClick={handleLogout}>
             Log out
-          </button>
+          </Button>
         </div>
       </nav>
 
@@ -74,20 +76,21 @@ export function Landing({
           </div>
           <p className={styles.bannerStatus}>{userIsSpotifyConnected ? 'Spotify connected' : 'Spotify not connected'}</p>
         </div>
-        <button
+        <Button
+          variant="text"
           className={userIsSpotifyConnected ? styles.bannerBtnConnected : styles.bannerBtnDisconnected}
           data-testid="spotify-toggle"
           onClick={handleToggleSpotify}
         >
           {userIsSpotifyConnected ? '✓ Connected' : 'Connect Spotify'}
-        </button>
+        </Button>
       </div>
 
       <div className={styles.panels}>
         <div className={`t-panel ${styles.panel}`}>
           <div className={styles.panelHeader}>
             <div className={styles.findSongsIcon}>
-              <NoteIcon size={12} color="#ffffff" />
+              <MusicNoteIcon sx={{ fontSize: 12, color: '#ffffff', display: 'block' }} />
             </div>
             <h2 className="t-heading" style={{ fontSize: 'var(--fs-heading)' }}>
               Find Songs
@@ -96,13 +99,25 @@ export function Landing({
           </div>
           <div className={styles.tabsWrap}>
             <Tabs
-              tabs={[
-                { id: 'search', label: 'Search', icon: <SearchIcon size={13} /> },
-                { id: 'upload', label: 'Upload Photo', icon: <ImageIcon size={13} /> },
-              ]}
-              activeId={activeTab}
-              onChange={(id) => setActiveTab(id as 'search' | 'upload')}
-            />
+              value={activeTab}
+              onChange={(_, id) => setActiveTab(id as 'search' | 'upload')}
+              aria-label="Fuente de canciones"
+            >
+              <Tab
+                value="search"
+                label="Search"
+                data-testid="tab-search"
+                icon={<SearchIcon sx={{ fontSize: 13 }} />}
+                iconPosition="start"
+              />
+              <Tab
+                value="upload"
+                label="Upload Photo"
+                data-testid="tab-upload"
+                icon={<ImageIcon sx={{ fontSize: 13 }} />}
+                iconPosition="start"
+              />
+            </Tabs>
           </div>
           {activeTab === 'search' ? (
             <SearchPanel onSearch={onSearch} onAddSong={onAddSong} />

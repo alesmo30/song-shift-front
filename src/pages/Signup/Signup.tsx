@@ -1,12 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Card } from '../../components/Card/Card';
-import { Input } from '../../components/Input/Input';
-import { Button } from '../../components/Button/Button';
+import Card from '@mui/material/Card';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import type { SignupFormProps } from '../../types/callbacks';
 import logoMark from '../../assets/logo-mark.png';
 import styles from './Signup.module.css';
-import { ErrorMessage, Formik } from 'formik';
-import { ErrorSpan } from '../../components/ErrorSpan/ErrorSpan';
+import { Formik } from 'formik';
 import { extractError } from '../../helpers/error-signup-validation';
 import { useState } from 'react';
 
@@ -37,7 +37,7 @@ export function Signup({ onSignup, error }: SignupFormProps) {
 
   return (
     <div className={styles.page}>
-      <Card>
+      <Card className={styles.card}>
         <div className={styles.logoRow}>
           <img src={logoMark} alt="Totify" className={styles.logoMark} />
           <span className="t-wordmark" style={{ fontSize: 'var(--fs-display-lg)', letterSpacing: 'var(--tracking-display)' }}>
@@ -48,53 +48,65 @@ export function Signup({ onSignup, error }: SignupFormProps) {
         <Formik initialValues={{ name: '', lastName: '', email: '', password: '' }} onSubmit={onHandleSubmit} validate={values => {
           return extractError(values.name, values.lastName, values.email, values.password);
         }}>
-          {({ values, handleChange, handleSubmit }) => (
+          {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
             <form onSubmit={handleSubmit}>
               <div className={styles.fields}>
                 <div className={styles.nameRow}>
-                  <div>
-                    <Input
-                      label="Name"
-                      name='name'
-                      type="text"
-                      value={values.name}
-                      onChange={handleChange}
-                      placeholder="Jane"
-                    />
-                    <ErrorMessage name="name" component={ErrorSpan} />
-                  </div>
-                  <div>
-                    <Input
-                      label="Last name"
-                      name='lastName'
-                      type="text"
-                      value={values.lastName}
-                      onChange={handleChange}
-                      placeholder="Doe"
-                    />
-                    <ErrorMessage name="lastName" component={ErrorSpan} />
-                  </div>
+                  <TextField
+                    label="Name"
+                    name='name'
+                    type="text"
+                    value={values.name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder="Jane"
+                    error={Boolean(touched.name && errors.name)}
+                    helperText={touched.name && errors.name ? errors.name : undefined}
+                  />
+                  <TextField
+                    label="Last name"
+                    name='lastName'
+                    type="text"
+                    value={values.lastName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder="Doe"
+                    error={Boolean(touched.lastName && errors.lastName)}
+                    helperText={touched.lastName && errors.lastName ? errors.lastName : undefined}
+                  />
                 </div>
-                <Input
+                <TextField
                   label="Email"
                   name='email'
                   type="text"
                   value={values.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="you@example.com"
+                  error={Boolean(touched.email && errors.email)}
+                  helperText={touched.email && errors.email ? errors.email : undefined}
                 />
-                <ErrorMessage name="email" component={ErrorSpan} />
-                <Input
+                <TextField
                   label="Password"
                   type="password"
                   name='password'
                   value={values.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="••••••••"
+                  error={Boolean(touched.password && errors.password)}
+                  helperText={touched.password && errors.password ? errors.password : undefined}
                 />
-                <ErrorMessage name="password" component={ErrorSpan} />
                 {error && <p className="t-error-text">{error}</p>}
-                <Button disabled={isSubmitting} loading={isSubmitting} type="submit" className={styles.submit}>
+                <Button
+                  variant="contained"
+                  type="submit"
+                  className={styles.submit}
+                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                  loadingPosition="start"
+                  loadingIndicator={<CircularProgress size={14} color="inherit" thickness={5} />}
+                >
                   {isSubmitting ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </div>
