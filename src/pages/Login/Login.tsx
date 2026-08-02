@@ -9,12 +9,12 @@ import styles from './Login.module.css';
 import { Formik } from 'formik';
 import { extractError } from '../../helpers/error-login-validation';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/features/userSlice';
 
 
 export function Login({ onLogin }: LoginFormProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,7 +23,8 @@ export function Login({ onLogin }: LoginFormProps) {
     const promise = await Promise.resolve(() => {
       return setTimeout(() => {
         setIsSubmitting(false);
-        dispatch(setUser({ name: email.split('@')[0], email, isSpotifyConnected: true }));
+        // MOCK — quitar
+        dispatch(setUser({ name: email.split('@')[0], email, isSpotifyConnected: true, token: 'mock-token' }));
         navigate('/');
       }, 5000);
     });

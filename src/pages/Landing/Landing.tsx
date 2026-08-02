@@ -12,9 +12,9 @@ import { SearchPanel } from './SearchPanel';
 import { UploadPanel } from './UploadPanel';
 import { PlaylistPanel } from './PlaylistPanel';
 import styles from './Landing.module.css';
-import { useDispatch, useSelector } from 'react-redux';
-import type { RootState } from '../../store/store';
-import { setUser } from '../../store/features/userSlice';
+import { persistor } from '../../store/store';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setUser, clearUser } from '../../store/features/userSlice';
 import { useNavigate } from 'react-router-dom';
 
 export function Landing({
@@ -26,13 +26,13 @@ export function Landing({
   onRefreshPlaylist,
 }: LandingProps) {
   const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
-  const { name, email, isSpotifyConnected: userIsSpotifyConnected } = useSelector((state: RootState) => state.user);
+  const { name, email, isSpotifyConnected: userIsSpotifyConnected, token } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
 
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
 
   const handleToggleSpotify = () => {
-    dispatch(setUser({ name, email, isSpotifyConnected: !userIsSpotifyConnected }))
+    dispatch(setUser({ name, email, isSpotifyConnected: !userIsSpotifyConnected, token }))
     if (onConnectSpotify) {
       onConnectSpotify();
     } else {
@@ -41,7 +41,8 @@ export function Landing({
   };
 
   const handleLogout = () => {
-    dispatch(setUser({ name: "", email: "", isSpotifyConnected: false }))
+    dispatch(clearUser());
+    persistor.purge();
     navigate('/login');
     if (onLogout) {
       onLogout();
