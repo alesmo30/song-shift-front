@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import SearchIcon from '@mui/icons-material/Search';
 import { SongRow } from '../../components/SongRow/SongRow';
-import { SearchIcon } from '../../components/icons/SearchIcon';
 import type { Song } from '../../types/song';
 import { MOCK_LIBRARY } from './mockData'; // MOCK — quitar
 import styles from './Landing.module.css';
@@ -52,23 +54,24 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
   return (
     <div className={styles.tabContent}>
       <div className={styles.searchRow}>
-        <input
-          className="t-input"
+        <TextField
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           placeholder="Song title, artist, or album…"
+          sx={{ flex: 1, minWidth: 0 }}
+          slotProps={{ htmlInput: { 'data-testid': 'search-input' } }}
         />
-        <button className={styles.searchBtn} onClick={handleSearch}>
+        <Button variant="text" className={styles.searchBtn} data-testid="search-submit" onClick={handleSearch}>
           Search
-        </button>
+        </Button>
       </div>
 
       {submittedQuery === '' && (
         <div className={styles.emptyState}>
           <div className={styles.emptyIconSquare}>
-            <SearchIcon size={22} color="rgba(252,60,68,0.6)" />
+            <SearchIcon sx={{ fontSize: 22, color: 'rgba(252,60,68,0.6)' }} />
           </div>
           <p className={styles.emptyTitle}>Search Spotify</p>
           <p className={styles.emptyHint}>
@@ -97,27 +100,29 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
                 key={song.id}
                 song={song}
                 action={
-                  <button
+                  <Button
+                    variant="text"
                     className={styles.addBtn}
+                    data-testid="add-song"
                     disabled={addedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >
                     {addedIds.has(song.id) ? '✓ Added' : '+ Add'}
-                  </button>
+                  </Button>
                 }
               />
             ))}
           </div>
           <div className={styles.pagination}>
-            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button variant="text" data-testid="page-prev" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
               ← Prev
-            </button>
+            </Button>
             <span>
               {page} / {totalPages}
             </span>
-            <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button variant="text" data-testid="page-next" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
               Next →
-            </button>
+            </Button>
           </div>
         </>
       )}

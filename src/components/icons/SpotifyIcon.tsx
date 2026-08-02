@@ -1,12 +1,18 @@
-interface SpotifyIconProps {
+import SvgIcon, { type SvgIconProps } from '@mui/material/SvgIcon';
+
+interface SpotifyIconProps extends Omit<SvgIconProps, 'color'> {
   size?: number;
   color?: string;
 }
 
-export function SpotifyIcon({ size = 18, color = '#ffffff' }: SpotifyIconProps) {
+/**
+ * Material Icons no incluye el logo de Spotify (marca registrada), así que el
+ * glyph original del handoff se conserva y solo se envuelve en `SvgIcon`.
+ */
+export function SpotifyIcon({ size = 18, color = '#ffffff', sx, ...rest }: SpotifyIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <SvgIcon viewBox="0 0 24 24" sx={{ fontSize: size, color, display: 'block', ...sx }} {...rest}>
       <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 01-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.857zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.13-9.965-1.166a.78.78 0 01-.973-.519.781.781 0 01.52-.972c3.632-1.102 8.147-.568 11.233 1.328a.78.78 0 01.257 1.072zm.105-2.835c-3.223-1.914-8.54-2.09-11.618-1.156a.935.935 0 11-.543-1.79c3.533-1.072 9.404-.865 13.115 1.338a.936.936 0 01-1.05 1.553z" />
-    </svg>
+    </SvgIcon>
   );
 }

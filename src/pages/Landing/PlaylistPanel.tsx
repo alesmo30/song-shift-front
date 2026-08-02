@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import IconButton from '@mui/material/IconButton';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { StatusPill } from '../../components/StatusPill/StatusPill';
 import { SpotifyIcon } from '../../components/icons/SpotifyIcon';
-import { RefreshIcon } from '../../components/icons/RefreshIcon';
 import { MOCK_DESTINATION_SONGS } from './mockData'; // MOCK — quitar
 import styles from './Landing.module.css';
 
@@ -41,11 +42,16 @@ export function PlaylistPanel({ onRefreshPlaylist }: PlaylistPanelProps) {
             </p>
           </div>
         </div>
-        <button className={styles.refreshBtn} onClick={handleRefresh}>
+        <IconButton
+          className={styles.refreshBtn}
+          data-testid="refresh-playlist"
+          aria-label="Refresh playlist"
+          onClick={handleRefresh}
+        >
           <span className={isSpinning ? styles.spinning : ''}>
-            <RefreshIcon size={15} />
+            <RefreshIcon sx={{ fontSize: 15, color: 'var(--color-text-muted-1)', display: 'block' }} />
           </span>
-        </button>
+        </IconButton>
       </div>
 
       <div className={styles.playlistList}>
