@@ -2,13 +2,24 @@ import { useState, type ChangeEvent, type DragEvent } from 'react';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import type { DetectedSong, Song } from '../../types/song';
-import { MOCK_DETECTED_SONGS } from './mockData'; // MOCK — quitar
+import AddIcon from '@mui/icons-material/Add';
+import type { Song } from '../../types/song';
 import styles from './Landing.module.css';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setDetected, clearDetected, setStatus, setError as setSongsError, toggleSelected, selectAllDetected } from '../../store/features/songsSlice';
+import { extractSongs } from '../../api/songs.service';
+
+const MAX_FILES = 5;
 
 interface UploadPanelProps {
-  onValidateWithAI?: (image: File | string) => void;
+  visible: boolean;
+  onValidateWithAI?: (images: File[]) => void;
   onAddSong?: (song: Song) => void;
+}
+
+interface PreviewFile {
+  file: File;
+  previewUrl: string;
 }
 
 function confidenceColor(confidence: number): string {
@@ -17,52 +28,76 @@ function confidenceColor(confidence: number): string {
   return 'var(--color-error)';
 }
 
-export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
-  const [image, setImage] = useState<string | null>(null);
+export function UploadPanel({ visible, onValidateWithAI, onAddSong }: UploadPanelProps) {
+  const dispatch = useAppDispatch();
+  const { detected, selected, status, error } = useAppSelector((state) => state.songs);
+  const [previews, setPreviews] = useState<PreviewFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
-  const [detectedSongs, setDetectedSongs] = useState<DetectedSong[] | null>(null);
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [fileError, setFileError] = useState<string | null>(null);
+  const selectedIds = new Set(selected.map((s) => s.id));
 
-  const setImageFromFile = (file: File | undefined) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result as string);
-    reader.readAsDataURL(file);
+  const isValidating = status === 'extracting';
+
+  const addFiles = (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const incoming = Array.from(fileList);
+
+    if (previews.length + incoming.length > MAX_FILES) {
+      setFileError(`You can upload up to ${MAX_FILES} screenshots at a time.`);
+      return;
+    }
+
+    setFileError(null);
+    incoming.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviews((prev) => [...prev, { file, previewUrl: reader.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setImageFromFile(e.target.files?.[0]);
+    addFiles(e.target.files);
+    e.target.value = '';
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragOver(false);
-    setImageFromFile(e.dataTransfer.files?.[0]);
+    addFiles(e.dataTransfer.files);
   };
 
-  const handleClear = () => {
-    setImage(null);
-    setDetectedSongs(null);
+  const handleRemove = (index: number) => {
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleValidate = () => {
-    if (!image) return;
+  const handleValidate = async () => {
+    if (previews.length === 0) return;
+    const files = previews.map((p) => p.file);
+
     if (onValidateWithAI) {
-      onValidateWithAI(image);
+      onValidateWithAI(files);
     } else {
-      console.log('onValidateWithAI not implemented', image);
+      console.log('onValidateWithAI not implemented', files);
     }
-    // MOCK — quitar: simula 1.2s de carga y devuelve canciones de ejemplo.
-    setIsValidating(true);
-    setTimeout(() => {
-      setIsValidating(false);
-      setDetectedSongs(MOCK_DETECTED_SONGS);
-    }, 1200);
+
+    dispatch(setStatus('extracting'));
+    dispatch(setSongsError(null));
+    dispatch(clearDetected());
+
+    try {
+      const { songs } = await extractSongs(files);
+      dispatch(setDetected(songs));
+    } catch {
+      dispatch(setSongsError('Could not validate screenshots. Please try again.'));
+    } finally {
+      dispatch(setStatus('idle'));
+    }
   };
 
   const handleAdd = (song: Song) => {
-    setAddedIds((prev) => new Set(prev).add(song.id));
+    dispatch(toggleSelected(song));
     if (onAddSong) {
       onAddSong(song);
     } else {
@@ -70,9 +105,15 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
     }
   };
 
+  const handleSelectAll = () => {
+    dispatch(selectAllDetected());
+  };
+
+  const allDetectedSelected = detected.length > 0 && detected.every((song) => selectedIds.has(song.id));
+
   return (
-    <div className={styles.tabContent}>
-      {!image && (
+    <div className={styles.tabContent} style={{ display: visible ? undefined : 'none' }}>
+      {previews.length === 0 && (
         <div
           className={`${styles.dropZone} ${isDragOver ? styles.dropZoneActive : ''}`}
           onDragOver={(e) => {
@@ -82,24 +123,65 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
           onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
         >
-          <input type="file" accept="image/*" data-testid="upload-input" onChange={handleFileChange} className={styles.dropZoneInput} />
-          <p className={styles.emptyTitle}>Drop your Apple Music screenshot</p>
-          <p className={styles.emptyHint}>or click to browse — PNG, JPG supported</p>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            data-testid="upload-input"
+            onChange={handleFileChange}
+            className={styles.dropZoneInput}
+          />
+          <p className={styles.emptyTitle}>Drop your Apple Music screenshots</p>
+          <p className={styles.emptyHint}>or click to browse — up to {MAX_FILES} at once, PNG/JPG supported</p>
         </div>
       )}
 
-      {image && (
+      {fileError && previews.length === 0 && (
+        <p className="t-error-text" data-testid="upload-file-error">
+          {fileError}
+        </p>
+      )}
+
+      {previews.length > 0 && (
         <div className={styles.uploadedWrap}>
-          <div className={styles.preview} style={{ backgroundImage: `url(${image})` }}>
-            <IconButton
-              className={styles.clearBtn}
-              data-testid="clear-image"
-              aria-label="Remove image"
-              onClick={handleClear}
-            >
-              <CloseIcon sx={{ fontSize: 16 }} />
-            </IconButton>
+          <div className={styles.thumbGrid}>
+            {previews.map((p, index) => (
+              <div key={index} className={styles.thumb} style={{ backgroundImage: `url(${p.previewUrl})` }}>
+                <IconButton
+                  className={styles.clearBtn}
+                  data-testid={`clear-image-${index}`}
+                  aria-label="Remove image"
+                  onClick={() => handleRemove(index)}
+                >
+                  <CloseIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </div>
+            ))}
+            {previews.length < MAX_FILES && (
+              <label className={styles.thumbAddTile}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  data-testid="upload-input-more"
+                  onChange={handleFileChange}
+                  className={styles.thumbAddInput}
+                />
+                <AddIcon sx={{ fontSize: 18 }} />
+              </label>
+            )}
           </div>
+
+          {fileError && (
+            <p className="t-error-text" data-testid="upload-file-error">
+              {fileError}
+            </p>
+          )}
+          {error && (
+            <p className="t-error-text" data-testid="upload-api-error">
+              {error}
+            </p>
+          )}
 
           <Button
             variant="text"
@@ -111,10 +193,20 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
             {isValidating ? 'Validating…' : 'Validate with AI'}
           </Button>
 
-          {detectedSongs && (
+          {detected.length > 0 && (
             <div className={styles.resultsList}>
-              <p className={styles.resultsCount}>AI detected these songs — confirm before adding:</p>
-              {detectedSongs.map((song) => (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <p className={styles.resultsCount}>AI detected these songs — confirm before adding:</p>
+                <Button
+                  variant="text"
+                  data-testid="select-all-detected"
+                  disabled={allDetectedSelected}
+                  onClick={handleSelectAll}
+                >
+                  Select all
+                </Button>
+              </div>
+              {detected.map((song) => (
                 <div key={song.id} className={styles.detectedRow}>
                   <div className={styles.info}>
                     <p className={styles.title}>{song.title}</p>
@@ -127,18 +219,18 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
                     variant="text"
                     className={styles.addBtn}
                     data-testid="add-detected-song"
-                    disabled={addedIds.has(song.id)}
+                    disabled={selectedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >
-                    {addedIds.has(song.id) ? '✓' : 'Add'}
+                    {selectedIds.has(song.id) ? '✓' : 'Add'}
                   </Button>
                 </div>
               ))}
             </div>
           )}
 
-          {!detectedSongs && !isValidating && (
-            <p className={styles.emptyHint}>Click "Validate with AI" to detect songs from this screenshot</p>
+          {detected.length === 0 && !isValidating && (
+            <p className={styles.emptyHint}>Click "Validate with AI" to detect songs from these screenshots</p>
           )}
         </div>
       )}

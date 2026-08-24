@@ -24,7 +24,8 @@ export function SongRow({ song, action, iconTint = 'brand' }: SongRowProps) {
         primary={<p className={styles.title}>{song.title}</p>}
         secondary={
           <p className={styles.meta}>
-            {song.artist} · {song.duration}
+            {song.artist}
+            {song.duration ? ` · ${song.duration}` : ''}
           </p>
         }
       />

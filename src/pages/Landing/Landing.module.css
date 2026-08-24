@@ -332,6 +332,48 @@
   background-position: center;
 }
 
+.thumbGrid {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: var(--space-4);
+}
+
+.thumb {
+  position: relative;
+  border-radius: var(--radius-input);
+  overflow: hidden;
+  aspect-ratio: 1;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.thumbAddTile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: var(--radius-input);
+  border: 1.5px dashed rgba(255, 255, 255, 0.12);
+  color: var(--color-text-muted-3);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.thumbAddTile:hover {
+  border-color: var(--color-spotify-border);
+  color: var(--color-spotify);
+}
+
+.thumbAddInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .clearBtn {
   position: absolute;
   top: var(--space-3);

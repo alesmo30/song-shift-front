@@ -34,6 +34,16 @@ async function seedPersistedUserAndGoto(page: import('@playwright/test').Page, p
 
 test.describe('Persistencia de Redux (redux-persist)', () => {
   test('el login persiste y sobrevive a un reload', async ({ page }) => {
+    await page.route('http://localhost:3000/login', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: { name: 'jane', lastName: 'doe', email: 'jane@example.com' },
+          accessToken: 'mock-token',
+        }),
+      });
+    });
     await gotoStable(page, '/login');
     await page.getByPlaceholder('you@example.com').fill('jane@example.com');
     await page.getByPlaceholder('••••••••').fill('secret123');
@@ -86,6 +96,7 @@ test.describe('Persistencia de Redux (redux-persist)', () => {
     await expect(page.getByText('jane')).toBeVisible();
 
     await page.getByTestId('logout').click();
+    await page.getByRole('button', { name: 'Yes' }).click();
     await expect(page).toHaveURL(/\/login$/);
 
     const persisted = await page.evaluate((key) => window.localStorage.getItem(key), PERSIST_KEY);
@@ -110,7 +121,10 @@ test.describe('Persistencia de Redux (redux-persist)', () => {
     page.on('pageerror', (error) => errors.push(error.message));
 
     await gotoStable(page, '/');
-    await expect(page.getByTestId('logout')).toBeVisible();
+    // Estado corrupto → sin usuario válido → el guard de rutas manda a /login,
+    // que es el comportamiento correcto; lo que este test verifica es que no crashea.
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByRole('button', { name: /Sign In/ })).toBeVisible();
     expect(errors).toEqual([]);
   });
 });

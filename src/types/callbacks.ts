@@ -17,7 +17,8 @@ export interface LandingProps {
   onConnectSpotify?: () => void;
   onLogout?: () => void;
   onSearch?: (query: string) => void;
-  onValidateWithAI?: (image: File | string) => void;
+  onValidateWithAI?: (images: File[]) => void;
   onAddSong?: (song: Song) => void;
+  onAddToPlaylist?: () => void;
   onRefreshPlaylist?: () => void;
 }
