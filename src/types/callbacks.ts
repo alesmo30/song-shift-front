@@ -19,5 +19,6 @@ export interface LandingProps {
   onSearch?: (query: string) => void;
   onValidateWithAI?: (images: File[]) => void;
   onAddSong?: (song: Song) => void;
+  onAddToPlaylist?: () => void;
   onRefreshPlaylist?: () => void;
 }

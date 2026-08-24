@@ -4,12 +4,14 @@ import Tab from '@mui/material/Tab';
 import Button from '@mui/material/Button';
 import SearchIcon from '@mui/icons-material/Search';
 import ImageIcon from '@mui/icons-material/Image';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import { SpotifyIcon } from '../../components/icons/SpotifyIcon';
 import type { LandingProps } from '../../types/callbacks';
 import logoMark from '../../assets/logo-mark.png';
 import { SearchPanel } from './SearchPanel';
 import { UploadPanel } from './UploadPanel';
+import { SelectedPanel } from './SelectedPanel';
 import { PlaylistPanel } from './PlaylistPanel';
 import styles from './Landing.module.css';
 import { persistor } from '../../store/store';
@@ -24,10 +26,12 @@ export function Landing({
   onSearch,
   onValidateWithAI,
   onAddSong,
+  onAddToPlaylist,
   onRefreshPlaylist,
 }: LandingProps) {
-  const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search');
+  const [activeTab, setActiveTab] = useState<'search' | 'upload' | 'selected'>('search');
   const { name, email, isSpotifyConnected: userIsSpotifyConnected, token } = useAppSelector((state) => state.user);
+  const selectedCount = useAppSelector((state) => state.songs.selected.length);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useAppDispatch()
@@ -132,7 +136,7 @@ export function Landing({
           <div className={styles.tabsWrap}>
             <Tabs
               value={activeTab}
-              onChange={(_, id) => setActiveTab(id as 'search' | 'upload')}
+              onChange={(_, id) => setActiveTab(id as 'search' | 'upload' | 'selected')}
               aria-label="Fuente de canciones"
             >
               <Tab
@@ -149,13 +153,18 @@ export function Landing({
                 icon={<ImageIcon sx={{ fontSize: 13 }} />}
                 iconPosition="start"
               />
+              <Tab
+                value="selected"
+                label={`Selected (${selectedCount})`}
+                data-testid="tab-selected"
+                icon={<PlaylistAddCheckIcon sx={{ fontSize: 13 }} />}
+                iconPosition="start"
+              />
             </Tabs>
           </div>
-          {activeTab === 'search' ? (
-            <SearchPanel onSearch={onSearch} onAddSong={onAddSong} />
-          ) : (
-            <UploadPanel onValidateWithAI={onValidateWithAI} onAddSong={onAddSong} />
-          )}
+          {activeTab === 'search' && <SearchPanel onSearch={onSearch} onAddSong={onAddSong} />}
+          {activeTab === 'upload' && <UploadPanel onValidateWithAI={onValidateWithAI} onAddSong={onAddSong} />}
+          {activeTab === 'selected' && <SelectedPanel onAddToPlaylist={onAddToPlaylist} />}
         </div>
 
         <div className={`t-panel ${styles.panel}`}>

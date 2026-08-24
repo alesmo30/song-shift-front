@@ -39,6 +39,9 @@ export const songsSlice = createSlice({
     removeSelected: (state, action: PayloadAction<string>) => {
       state.selected = state.selected.filter((s) => s.id !== action.payload);
     },
+    clearSelected: (state) => {
+      state.selected = [];
+    },
     commitSelected: (state) => {
       state.playlist.push(...state.selected);
       state.selected = [];
@@ -57,6 +60,7 @@ export const {
   clearDetected,
   toggleSelected,
   removeSelected,
+  clearSelected,
   commitSelected,
   setStatus,
   setError,
