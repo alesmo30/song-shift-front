@@ -6,12 +6,13 @@ import AddIcon from '@mui/icons-material/Add';
 import type { Song } from '../../types/song';
 import styles from './Landing.module.css';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setDetected, setStatus, setError as setSongsError, toggleSelected } from '../../store/features/songsSlice';
+import { setDetected, clearDetected, setStatus, setError as setSongsError, toggleSelected } from '../../store/features/songsSlice';
 import { extractSongs } from '../../api/songs.service';
 
 const MAX_FILES = 5;
 
 interface UploadPanelProps {
+  visible: boolean;
   onValidateWithAI?: (images: File[]) => void;
   onAddSong?: (song: Song) => void;
 }
@@ -27,7 +28,7 @@ function confidenceColor(confidence: number): string {
   return 'var(--color-error)';
 }
 
-export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
+export function UploadPanel({ visible, onValidateWithAI, onAddSong }: UploadPanelProps) {
   const dispatch = useAppDispatch();
   const { detected, selected, status, error } = useAppSelector((state) => state.songs);
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
@@ -83,6 +84,7 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
 
     dispatch(setStatus('extracting'));
     dispatch(setSongsError(null));
+    dispatch(clearDetected());
 
     try {
       const { songs } = await extractSongs(files);
@@ -104,7 +106,7 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
   };
 
   return (
-    <div className={styles.tabContent}>
+    <div className={styles.tabContent} style={{ display: visible ? undefined : 'none' }}>
       {previews.length === 0 && (
         <div
           className={`${styles.dropZone} ${isDragOver ? styles.dropZoneActive : ''}`}

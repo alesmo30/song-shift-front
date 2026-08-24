@@ -12,11 +12,12 @@ import { toggleSelected } from '../../store/features/songsSlice';
 const PAGE_SIZE = 6;
 
 interface SearchPanelProps {
+  visible: boolean;
   onSearch?: (query: string) => void;
   onAddSong?: (song: Song) => void;
 }
 
-export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
+export function SearchPanel({ visible, onSearch, onAddSong }: SearchPanelProps) {
   const dispatch = useAppDispatch();
   const selected = useAppSelector((state) => state.songs.selected);
   const selectedIds = new Set(selected.map((s) => s.id));
@@ -56,7 +57,7 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
   const pageResults = results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className={styles.tabContent}>
+    <div className={styles.tabContent} style={{ display: visible ? undefined : 'none' }}>
       <div className={styles.searchRow}>
         <TextField
           type="text"

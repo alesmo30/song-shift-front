@@ -8,10 +8,11 @@ import { removeSelected, clearSelected, commitSelected, setStatus, setError as s
 import { sendToPlaylist } from '../../api/songs.service';
 
 interface SelectedPanelProps {
+  visible: boolean;
   onAddToPlaylist?: () => void;
 }
 
-export function SelectedPanel({ onAddToPlaylist }: SelectedPanelProps) {
+export function SelectedPanel({ visible, onAddToPlaylist }: SelectedPanelProps) {
   const dispatch = useAppDispatch();
   const { selected, status, error } = useAppSelector((state) => state.songs);
   const isSending = status === 'sending';
@@ -47,7 +48,7 @@ export function SelectedPanel({ onAddToPlaylist }: SelectedPanelProps) {
   };
 
   return (
-    <div className={styles.tabContent}>
+    <div className={styles.tabContent} style={{ display: visible ? undefined : 'none' }}>
       {selected.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyTitle}>No songs selected</p>

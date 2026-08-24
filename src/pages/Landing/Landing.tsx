@@ -162,9 +162,9 @@ export function Landing({
               />
             </Tabs>
           </div>
-          {activeTab === 'search' && <SearchPanel onSearch={onSearch} onAddSong={onAddSong} />}
-          {activeTab === 'upload' && <UploadPanel onValidateWithAI={onValidateWithAI} onAddSong={onAddSong} />}
-          {activeTab === 'selected' && <SelectedPanel onAddToPlaylist={onAddToPlaylist} />}
+          <SearchPanel visible={activeTab === 'search'} onSearch={onSearch} onAddSong={onAddSong} />
+          <UploadPanel visible={activeTab === 'upload'} onValidateWithAI={onValidateWithAI} onAddSong={onAddSong} />
+          <SelectedPanel visible={activeTab === 'selected'} onAddToPlaylist={onAddToPlaylist} />
         </div>
 
         <div className={`t-panel ${styles.panel}`}>

@@ -51,7 +51,7 @@ test.describe('Landing', () => {
     await expect(page.getByTestId('search-input')).toBeVisible();
     await page.getByTestId('tab-upload').click();
     await expect(page.getByText('Drop your Apple Music screenshots')).toBeVisible();
-    await expect(page.getByTestId('search-input')).toHaveCount(0);
+    await expect(page.getByTestId('search-input')).toBeHidden();
     await freeze(page);
     await expect(page).toHaveScreenshot('landing-tab-upload.png');
     await page.getByTestId('tab-selected').click();
@@ -159,6 +159,43 @@ test.describe('Landing', () => {
     await page.getByTestId('validate-ai').click();
     await expect(page.getByTestId('upload-api-error')).toBeVisible();
     await expect(page.getByTestId('clear-image-0')).toBeVisible();
+  });
+
+  test('las imágenes subidas sobreviven un cambio de pestaña', async ({ page }) => {
+    await mockExtractSongs(page);
+    await gotoAuthenticated(page, '/');
+    await page.getByTestId('tab-upload').click();
+    await page.getByTestId('upload-input').setInputFiles('src/assets/logo-mark.png');
+    await expect(page.getByTestId('clear-image-0')).toBeVisible();
+
+    await page.getByTestId('tab-selected').click();
+    await expect(page.getByText('No songs selected')).toBeVisible();
+    await page.getByTestId('tab-upload').click();
+
+    // La preview sigue ahí tras volver — no vuelve al dropzone vacío
+    await expect(page.getByTestId('clear-image-0')).toBeVisible();
+    await expect(page.getByText('Drop your Apple Music screenshots')).toBeHidden();
+  });
+
+  test('un nuevo validate no muestra canciones detectadas de un intento anterior', async ({ page }) => {
+    await mockExtractSongs(page);
+    await gotoAuthenticated(page, '/');
+    await page.getByTestId('tab-upload').click();
+    await page.getByTestId('upload-input').setInputFiles('src/assets/logo-mark.png');
+    await page.getByTestId('validate-ai').click();
+    await expect(page.getByTestId('add-detected-song')).toHaveCount(4);
+
+    await page.getByTestId('clear-image-0').click();
+    await page.getByTestId('upload-input').setInputFiles('src/assets/logo-mark.png');
+
+    // Segundo /songs/extract con delay para poder inspeccionar el estado "Validating…"
+    await page.route('**/songs/extract', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_EXTRACT_RESPONSE) });
+    });
+    await page.getByTestId('validate-ai').click();
+    await expect(page.getByText('Validating…')).toBeVisible();
+    await expect(page.getByTestId('add-detected-song')).toHaveCount(0);
   });
 
   test('el flujo completo: detectar, seleccionar y mandar a la playlist', async ({ page }) => {
