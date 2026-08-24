@@ -161,6 +161,27 @@ test.describe('Landing', () => {
     await expect(page.getByTestId('clear-image-0')).toBeVisible();
   });
 
+  test('Select all agrega todas las detectadas y respeta las ya seleccionadas', async ({ page }) => {
+    await mockExtractSongs(page);
+    await gotoAuthenticated(page, '/');
+    await page.getByTestId('tab-upload').click();
+    await page.getByTestId('upload-input').setInputFiles('src/assets/logo-mark.png');
+    await page.getByTestId('validate-ai').click();
+    await expect(page.getByTestId('add-detected-song')).toHaveCount(4);
+
+    // Selecciono una a mano antes de usar Select all
+    await page.getByTestId('add-detected-song').first().click();
+    await expect(page.getByTestId('tab-selected')).toHaveText('Selected (1)');
+
+    await page.getByTestId('select-all-detected').click();
+    await expect(page.getByTestId('tab-selected')).toHaveText('Selected (4)');
+    await expect(page.getByTestId('select-all-detected')).toBeDisabled();
+
+    // No duplica la que ya estaba
+    await page.getByTestId('tab-selected').click();
+    await expect(page.getByTestId('remove-selected')).toHaveCount(4);
+  });
+
   test('las imágenes subidas sobreviven un cambio de pestaña', async ({ page }) => {
     await mockExtractSongs(page);
     await gotoAuthenticated(page, '/');

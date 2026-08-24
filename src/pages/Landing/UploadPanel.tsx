@@ -6,7 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import type { Song } from '../../types/song';
 import styles from './Landing.module.css';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setDetected, clearDetected, setStatus, setError as setSongsError, toggleSelected } from '../../store/features/songsSlice';
+import { setDetected, clearDetected, setStatus, setError as setSongsError, toggleSelected, selectAllDetected } from '../../store/features/songsSlice';
 import { extractSongs } from '../../api/songs.service';
 
 const MAX_FILES = 5;
@@ -105,6 +105,12 @@ export function UploadPanel({ visible, onValidateWithAI, onAddSong }: UploadPane
     }
   };
 
+  const handleSelectAll = () => {
+    dispatch(selectAllDetected());
+  };
+
+  const allDetectedSelected = detected.length > 0 && detected.every((song) => selectedIds.has(song.id));
+
   return (
     <div className={styles.tabContent} style={{ display: visible ? undefined : 'none' }}>
       {previews.length === 0 && (
@@ -189,7 +195,17 @@ export function UploadPanel({ visible, onValidateWithAI, onAddSong }: UploadPane
 
           {detected.length > 0 && (
             <div className={styles.resultsList}>
-              <p className={styles.resultsCount}>AI detected these songs — confirm before adding:</p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <p className={styles.resultsCount}>AI detected these songs — confirm before adding:</p>
+                <Button
+                  variant="text"
+                  data-testid="select-all-detected"
+                  disabled={allDetectedSelected}
+                  onClick={handleSelectAll}
+                >
+                  Select all
+                </Button>
+              </div>
               {detected.map((song) => (
                 <div key={song.id} className={styles.detectedRow}>
                   <div className={styles.info}>

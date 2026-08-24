@@ -39,6 +39,15 @@ export const songsSlice = createSlice({
     removeSelected: (state, action: PayloadAction<string>) => {
       state.selected = state.selected.filter((s) => s.id !== action.payload);
     },
+    selectAllDetected: (state) => {
+      const existingIds = new Set(state.selected.map((s) => s.id));
+      state.detected.forEach((song) => {
+        if (!existingIds.has(song.id)) {
+          state.selected.push(song);
+          existingIds.add(song.id);
+        }
+      });
+    },
     clearSelected: (state) => {
       state.selected = [];
     },
@@ -60,6 +69,7 @@ export const {
   clearDetected,
   toggleSelected,
   removeSelected,
+  selectAllDetected,
   clearSelected,
   commitSelected,
   setStatus,
