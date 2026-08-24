@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { gotoStable } from './helpers';
+import { gotoStable, gotoAuthenticated } from './helpers';
 
 /** Comportamientos que aporta MUI y que el scaffold propio no tenía. */
 test.describe('Accesibilidad ganada con MUI', () => {
   test('los tabs exponen role tablist/tab con aria-selected', async ({ page }) => {
-    await gotoStable(page, '/');
+    await gotoAuthenticated(page, '/');
     await expect(page.getByRole('tablist')).toBeVisible();
     const search = page.getByRole('tab', { name: 'Search' });
     const upload = page.getByRole('tab', { name: 'Upload Photo' });
@@ -42,7 +42,7 @@ test.describe('Accesibilidad ganada con MUI', () => {
   });
 
   test('los botones-icono tienen nombre accesible', async ({ page }) => {
-    await gotoStable(page, '/');
+    await gotoAuthenticated(page, '/');
     await expect(page.getByRole('button', { name: 'Refresh playlist' })).toBeVisible();
 
     await page.getByTestId('tab-upload').click();
