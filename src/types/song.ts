@@ -10,8 +10,3 @@ export interface DetectedSong extends Song {
 }
 
 export type DestinationStatus = 'queued' | 'adding' | 'added';
-
-export interface DestinationSong {
-  song: Song;
-  status: DestinationStatus;
-}

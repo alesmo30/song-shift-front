@@ -4,7 +4,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import { SongRow } from '../../components/SongRow/SongRow';
 import styles from './Landing.module.css';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { removeSelected, clearSelected } from '../../store/features/songsSlice';
+import { removeSelected, clearSelected, commitSelected, setStatus, setError as setSongsError } from '../../store/features/songsSlice';
+import { sendToPlaylist } from '../../api/songs.service';
 
 interface SelectedPanelProps {
   onAddToPlaylist?: () => void;
@@ -12,7 +13,8 @@ interface SelectedPanelProps {
 
 export function SelectedPanel({ onAddToPlaylist }: SelectedPanelProps) {
   const dispatch = useAppDispatch();
-  const selected = useAppSelector((state) => state.songs.selected);
+  const { selected, status, error } = useAppSelector((state) => state.songs);
+  const isSending = status === 'sending';
 
   const handleRemove = (id: string) => {
     dispatch(removeSelected(id));
@@ -22,11 +24,25 @@ export function SelectedPanel({ onAddToPlaylist }: SelectedPanelProps) {
     dispatch(clearSelected());
   };
 
-  const handleAddToPlaylist = () => {
+  const handleAddToPlaylist = async () => {
+    if (selected.length === 0) return;
+
     if (onAddToPlaylist) {
       onAddToPlaylist();
     } else {
       console.log('onAddToPlaylist not implemented');
+    }
+
+    dispatch(setStatus('sending'));
+    dispatch(setSongsError(null));
+
+    try {
+      await sendToPlaylist(selected);
+      dispatch(commitSelected());
+    } catch {
+      dispatch(setSongsError('Could not add songs to the playlist. Please try again.'));
+    } finally {
+      dispatch(setStatus('idle'));
     }
   };
 
@@ -66,14 +82,20 @@ export function SelectedPanel({ onAddToPlaylist }: SelectedPanelProps) {
             ))}
           </div>
 
+          {error && (
+            <p className="t-error-text" data-testid="playlist-api-error">
+              {error}
+            </p>
+          )}
+
           <Button
             variant="text"
             className={styles.validateBtn}
             data-testid="add-to-playlist"
-            disabled={selected.length === 0}
+            disabled={selected.length === 0 || isSending}
             onClick={handleAddToPlaylist}
           >
-            Add to playlist
+            {isSending ? 'Adding…' : 'Add to playlist'}
           </Button>
         </>
       )}
