@@ -6,6 +6,8 @@ import { SongRow } from '../../components/SongRow/SongRow';
 import type { Song } from '../../types/song';
 import { MOCK_LIBRARY } from './mockData'; // MOCK — quitar
 import styles from './Landing.module.css';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { toggleSelected } from '../../store/features/songsSlice';
 
 const PAGE_SIZE = 6;
 
@@ -15,10 +17,12 @@ interface SearchPanelProps {
 }
 
 export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
+  const dispatch = useAppDispatch();
+  const selected = useAppSelector((state) => state.songs.selected);
+  const selectedIds = new Set(selected.map((s) => s.id));
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [page, setPage] = useState(1);
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   const handleSearch = () => {
     setSubmittedQuery(query);
@@ -31,7 +35,7 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
   };
 
   const handleAdd = (song: Song) => {
-    setAddedIds((prev) => new Set(prev).add(song.id));
+    dispatch(toggleSelected(song));
     if (onAddSong) {
       onAddSong(song);
     } else {
@@ -104,10 +108,10 @@ export function SearchPanel({ onSearch, onAddSong }: SearchPanelProps) {
                     variant="text"
                     className={styles.addBtn}
                     data-testid="add-song"
-                    disabled={addedIds.has(song.id)}
+                    disabled={selectedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >
-                    {addedIds.has(song.id) ? '✓ Added' : '+ Add'}
+                    {selectedIds.has(song.id) ? '✓ Added' : '+ Add'}
                   </Button>
                 }
               />

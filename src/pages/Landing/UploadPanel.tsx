@@ -6,7 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import type { Song } from '../../types/song';
 import styles from './Landing.module.css';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setDetected, setStatus, setError as setSongsError } from '../../store/features/songsSlice';
+import { setDetected, setStatus, setError as setSongsError, toggleSelected } from '../../store/features/songsSlice';
 import { extractSongs } from '../../api/songs.service';
 
 const MAX_FILES = 5;
@@ -29,11 +29,11 @@ function confidenceColor(confidence: number): string {
 
 export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
   const dispatch = useAppDispatch();
-  const { detected, status, error } = useAppSelector((state) => state.songs);
+  const { detected, selected, status, error } = useAppSelector((state) => state.songs);
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const selectedIds = new Set(selected.map((s) => s.id));
 
   const isValidating = status === 'extracting';
 
@@ -95,7 +95,7 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
   };
 
   const handleAdd = (song: Song) => {
-    setAddedIds((prev) => new Set(prev).add(song.id));
+    dispatch(toggleSelected(song));
     if (onAddSong) {
       onAddSong(song);
     } else {
@@ -201,10 +201,10 @@ export function UploadPanel({ onValidateWithAI, onAddSong }: UploadPanelProps) {
                     variant="text"
                     className={styles.addBtn}
                     data-testid="add-detected-song"
-                    disabled={addedIds.has(song.id)}
+                    disabled={selectedIds.has(song.id)}
                     onClick={() => handleAdd(song)}
                   >
-                    {addedIds.has(song.id) ? '✓' : 'Add'}
+                    {selectedIds.has(song.id) ? '✓' : 'Add'}
                   </Button>
                 </div>
               ))}
