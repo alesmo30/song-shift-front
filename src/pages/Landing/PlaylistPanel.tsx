@@ -69,7 +69,8 @@ export function PlaylistPanel({ onRefreshPlaylist }: PlaylistPanelProps) {
             <div className={styles.info}>
               <p className={styles.title}>{item.song.title}</p>
               <p className={styles.meta}>
-                {item.song.artist} · {item.song.duration}
+                {item.song.artist}
+                {item.song.duration ? ` · ${item.song.duration}` : '-'}
               </p>
             </div>
             <StatusPill status={item.status} />

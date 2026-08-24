@@ -2,7 +2,7 @@ export interface Song {
   id: string;
   title: string;
   artist: string;
-  duration: string; // "3:24"
+  duration: string | null; // "3:24"
 }
 
 export interface DetectedSong extends Song {

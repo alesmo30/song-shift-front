@@ -53,6 +53,11 @@ export function Landing({
     dispatch(clearUser());
     persistor.purge();
     navigate('/login');
+    if (onLogout) {
+      onLogout();
+    } else {
+      console.log('onLogout not implemented');
+    }
   };
 
   return (

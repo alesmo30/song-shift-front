@@ -12,9 +12,11 @@ import {
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import userReducer from './features/userSlice'
+import songsReducer from './features/songsSlice'
 
 const rootReducer = combineReducers({
     user: userReducer,
+    songs: songsReducer,
 })
 
 const migrate = createMigrate({}, { debug: false })

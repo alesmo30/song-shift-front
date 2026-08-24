@@ -29,6 +29,11 @@ export function Login({ onLogin }: LoginFormProps) {
     try {
       const { user: { name, lastName, email: userEmail }, accessToken } = await loginUser({ email, password });
       dispatch(setUser({ name: `${name} ${lastName}`, email: userEmail, isSpotifyConnected: false, token: accessToken }));
+      if (onLogin) {
+        onLogin(email, password);
+      } else {
+        console.log('onLogin not implemented');
+      }
       navigate('/');
     } catch (error) {
       const apiMessage = get(error, 'response.data.message', 'Problems trying to sign in. Please verify your credentials.');
