@@ -1,6 +1,6 @@
 # 04 — Pestaña "Selected" y subida real de screenshots
 
-**Estado:** Approved
+**Estado:** Implementado
 **Depende de:** `specs/03-redux-persist-estado-usuario.md` (Approved) y `backend/specs/01-extraccion-canciones-screenshot.md` (Draft)
 **Fecha:** 2026-08-24
 
@@ -78,22 +78,22 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] La pestaña "Upload Photo" acepta varios ficheros de una vez y muestra una miniatura por cada uno.
-- [ ] Seleccionar 6 ficheros muestra un error en el cliente y no llega a llamar al backend.
-- [ ] "Validate with AI" llama a `POST /songs/extract` con `multipart/form-data` (verificable en la pestaña Network) y no a un `setTimeout`.
-- [ ] `MOCK_DETECTED_SONGS` ya no se importa en ningún sitio.
-- [ ] Mientras la petición está en vuelo el botón queda deshabilitado y muestra "Validating…".
-- [ ] Un 502 del backend muestra un mensaje de error en el panel y deja las imágenes cargadas para reintentar.
-- [ ] Añadir una canción desde "Search" y otra desde "Upload Photo" hace que el contador de la pestaña "Selected" marque 2.
-- [ ] Cambiar de pestaña y volver conserva la lista de Selected.
-- [ ] Quitar una canción en "Selected" decrementa el contador y no la devuelve a `detected` como no seleccionada.
-- [ ] Añadir dos veces la misma canción detectada no la duplica en Selected.
-- [ ] "Add to playlist" con la lista vacía está deshabilitado.
-- [ ] Tras un 202, las canciones desaparecen de "Selected" y aparecen en `PlaylistPanel`, y el contador vuelve a 0.
-- [ ] `PlaylistPanel` no importa `mockData` y muestra un estado vacío cuando no se ha enviado nada.
-- [ ] Un refresh vacía `detected`, `selected` y `playlist`, y el estado de `user` sigue persistido (la spec 03 no se rompe).
-- [ ] `npm run build` (`tsc -b`) sin errores ni `any`.
-- [ ] La suite de Playwright pasa; las únicas baselines regeneradas son las que contienen la barra de pestañas.
+- [x] La pestaña "Upload Photo" acepta varios ficheros de una vez y muestra una miniatura por cada uno.
+- [x] Seleccionar 6 ficheros muestra un error en el cliente y no llega a llamar al backend.
+- [x] "Validate with AI" llama a `POST /songs/extract` con `multipart/form-data` (verificable en la pestaña Network) y no a un `setTimeout`.
+- [x] `MOCK_DETECTED_SONGS` ya no se importa en ningún sitio.
+- [x] Mientras la petición está en vuelo el botón queda deshabilitado y muestra "Validating…".
+- [x] Un 502 del backend muestra un mensaje de error en el panel y deja las imágenes cargadas para reintentar.
+- [x] Añadir una canción desde "Search" y otra desde "Upload Photo" hace que el contador de la pestaña "Selected" marque 2.
+- [x] Cambiar de pestaña y volver conserva la lista de Selected.
+- [x] Quitar una canción en "Selected" decrementa el contador y no la devuelve a `detected` como no seleccionada.
+- [x] Añadir dos veces la misma canción detectada no la duplica en Selected.
+- [x] "Add to playlist" con la lista vacía está deshabilitado.
+- [x] Tras un 202, las canciones desaparecen de "Selected" y aparecen en `PlaylistPanel`, y el contador vuelve a 0.
+- [x] `PlaylistPanel` no importa `mockData` y muestra un estado vacío cuando no se ha enviado nada.
+- [x] Un refresh vacía `detected`, `selected` y `playlist`, y el estado de `user` sigue persistido (la spec 03 no se rompe).
+- [x] `npm run build` (`tsc -b`) sin errores ni `any`.
+- [x] La suite de Playwright pasa; las únicas baselines regeneradas son las que contienen la barra de pestañas.
 
 ## Decisiones tomadas y descartadas
 
