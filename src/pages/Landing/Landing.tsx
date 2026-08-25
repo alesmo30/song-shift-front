@@ -17,13 +17,15 @@ import styles from './Landing.module.css';
 import { persistor } from '../../store/store';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { clearUser, setSpotifyConnected } from '../../store/features/userSlice';
-import { setSpotifyConnecting, resetSpotify, setSpotifyError } from '../../store/features/spotifySlice';
+import { setSpotifyConnecting, resetSpotify, setSpotifyError, setSpotifyNeedsReconnect } from '../../store/features/spotifySlice';
 import { loadSpotifyStatus } from '../../store/spotifyStatus';
+import { isSpotifyReauthRequired } from '../../store/spotifyErrorHandling';
 import { getSpotifyAuthUrl, disconnectSpotify } from '../../api/spotify.service';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert } from '@mui/material';
 
 const SPOTIFY_CONNECT_ERROR_MESSAGE = 'No pudimos iniciar la conexión con Spotify. Inténtalo de nuevo.';
+const SPOTIFY_DISCONNECT_ERROR_MESSAGE = 'No pudimos desconectar tu cuenta de Spotify. Inténtalo de nuevo.';
 
 export function Landing({
   onConnectSpotify,
@@ -70,9 +72,13 @@ export function Landing({
         console.log('onConnectSpotify not implemented');
       }
       window.location.assign(authorizeUrl);
-    } catch {
+    } catch (error) {
       dispatch(setSpotifyConnecting(false));
-      dispatch(setSpotifyError(SPOTIFY_CONNECT_ERROR_MESSAGE));
+      if (isSpotifyReauthRequired(error)) {
+        dispatch(setSpotifyNeedsReconnect());
+      } else {
+        dispatch(setSpotifyError(SPOTIFY_CONNECT_ERROR_MESSAGE));
+      }
     }
   };
 
@@ -86,9 +92,17 @@ export function Landing({
 
   const handleDisconnectConfirm = async () => {
     setDisconnectDialogOpen(false);
-    await disconnectSpotify();
-    dispatch(setSpotifyConnected(false));
-    await loadSpotifyStatus(dispatch);
+    try {
+      await disconnectSpotify();
+      dispatch(setSpotifyConnected(false));
+      await loadSpotifyStatus(dispatch);
+    } catch (error) {
+      if (isSpotifyReauthRequired(error)) {
+        dispatch(setSpotifyNeedsReconnect());
+      } else {
+        dispatch(setSpotifyError(SPOTIFY_DISCONNECT_ERROR_MESSAGE));
+      }
+    }
   };
 
   const handleClickOpen = () => {
