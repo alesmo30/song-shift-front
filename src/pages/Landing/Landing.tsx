@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Button from '@mui/material/Button';
@@ -49,7 +49,14 @@ export function Landing({
   const callbackMessage = (location.state as { spotifyCallbackMessage?: string } | null)?.spotifyCallbackMessage ?? null;
   const [callbackSnackbarMessage, setCallbackSnackbarMessage] = useState<string | null>(callbackMessage);
 
+  // Guard contra el doble-invoke de StrictMode en desarrollo (monta → limpia
+  // → monta): sin esto, GET /spotify/status sale dos veces en cada carga.
+  // El ref sobrevive ese ciclo porque es la misma instancia de componente.
+  const hasFetchedSpotifyStatus = useRef(false);
+
   useEffect(() => {
+    if (hasFetchedSpotifyStatus.current) return;
+    hasFetchedSpotifyStatus.current = true;
     loadSpotifyStatus(dispatch);
   }, [dispatch]);
 

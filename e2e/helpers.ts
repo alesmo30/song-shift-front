@@ -92,13 +92,13 @@ export async function gotoStable(page: Page, path: string) {
 }
 
 /**
- * `/` está detrás de `PrivateRoutes`: sin un usuario persistido redirige a
- * `/login`. Sembramos el estado de redux-persist antes de navegar para las
- * rutas protegidas, igual que hace persistence.spec.ts. También stubea
- * GET /spotify/status como desconectado por defecto (ver mockSpotifyApi);
- * pasar `spotifyStatus` para probar otro estado del banner.
+ * Siembra el usuario en `persist:totify`, sin tocar las rutas de Spotify.
+ * Nivel bajo: úsalo cuando necesites controlar tú mismo los `page.route` de
+ * Spotify (el último `page.route` registrado para un patrón gana, así que
+ * llamar a `mockSpotifyApi` con tu propio stub después de esto -- y antes
+ * de la navegación final -- es lo que determina la respuesta real).
  */
-export async function gotoAuthenticated(page: Page, path: string, spotifyStatus?: SpotifyStatusOverrides) {
+export async function seedAuthenticatedUser(page: Page, path: string) {
   await gotoStable(page, path);
   await page.evaluate(
     ({ key, user }) => {
@@ -112,6 +112,17 @@ export async function gotoAuthenticated(page: Page, path: string, spotifyStatus?
     },
     { key: PERSIST_KEY, user: MOCK_USER },
   );
+}
+
+/**
+ * `/` está detrás de `PrivateRoutes`: sin un usuario persistido redirige a
+ * `/login`. Sembramos el estado de redux-persist antes de navegar para las
+ * rutas protegidas, igual que hace persistence.spec.ts. También stubea
+ * GET /spotify/status como desconectado por defecto (ver mockSpotifyApi);
+ * pasar `spotifyStatus` para probar otro estado del banner.
+ */
+export async function gotoAuthenticated(page: Page, path: string, spotifyStatus?: SpotifyStatusOverrides) {
+  await seedAuthenticatedUser(page, path);
   await mockSpotifyApi(page, { status: spotifyStatus });
   await gotoStable(page, path);
 }

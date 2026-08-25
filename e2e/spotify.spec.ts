@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoAuthenticated, mockSpotifyApi } from './helpers';
+import { gotoAuthenticated, mockSpotifyApi, seedAuthenticatedUser, gotoStable } from './helpers';
 
 const REASON_MESSAGES: Record<string, string> = {
   access_denied: 'You cancelled the Spotify connection.',
@@ -10,6 +10,49 @@ const REASON_MESSAGES: Record<string, string> = {
   profile_fetch_failed: 'We could not read your Spotify profile. Please try again.',
   user_not_allowlisted: 'This Spotify account is not authorized to use Totify yet.',
 };
+
+test.describe('Estado al montar', () => {
+  test('dispara exactamente una petición a GET /spotify/status', async ({ page }) => {
+    const statusRequests: string[] = [];
+
+    await seedAuthenticatedUser(page, '/');
+    await page.route('**/spotify/status', (route) => {
+      statusRequests.push(route.request().url());
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          connected: false,
+          spotifyUserId: null,
+          displayName: null,
+          email: null,
+          country: null,
+          scopes: [],
+          connectedAt: null,
+          needsReconnect: false,
+        }),
+      });
+    });
+    await gotoStable(page, '/');
+
+    await expect(page.getByText('Spotify not connected')).toBeVisible();
+
+    // React StrictMode invoca los efectos dos veces en desarrollo
+    // (monta -> limpia -> monta); sin el guard de useRef en Landing.tsx
+    // esto dispararía dos GET en vez de uno.
+    expect(statusRequests.length).toBe(1);
+  });
+
+  test('si GET /spotify/status falla, el banner queda en error y no afirma conexión', async ({ page }) => {
+    await seedAuthenticatedUser(page, '/');
+    await page.route('**/spotify/status', (route) => route.fulfill({ status: 500 }));
+    await gotoStable(page, '/');
+
+    await expect(page.getByText('No pudimos comprobar tu conexión con Spotify.')).toBeVisible();
+    await expect(page.getByText('Spotify connected')).not.toBeVisible();
+    await expect(page.getByTestId('spotify-toggle')).toHaveText('Retry');
+  });
+});
 
 test.describe('Desconectar Spotify', () => {
   test('cancelar el diálogo no dispara ninguna petición', async ({ page }) => {
