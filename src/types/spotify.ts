@@ -15,6 +15,17 @@ export interface SpotifyConnection {
   scopes: string[];
   connectedAt: string | null; // ISO 8601
   needsReconnect: boolean;
+  defaultPlaylistId: string | null;
+}
+
+export interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  description: string;
+  trackCount: number;
+  public: boolean;
+  imageUrl: string | null;
+  url: string;
 }
 
 export type SpotifyCallbackReason =

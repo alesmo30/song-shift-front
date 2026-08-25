@@ -1,11 +1,22 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { SpotifyCallbackReason, SpotifyConnection, SpotifyConnectionStatus } from '../../types/spotify';
+import type { SpotifyCallbackReason, SpotifyConnection, SpotifyConnectionStatus, SpotifyPlaylist } from '../../types/spotify';
+
+export type SpotifyPlaylistsStatus = 'idle' | 'loading' | 'ready' | 'error';
+export type SpotifyCreatingStatus = 'idle' | 'saving' | 'error';
 
 export interface SpotifyState {
   status: SpotifyConnectionStatus;
   connection: SpotifyConnection | null;
   error: string | null;
   connecting: boolean; // true mientras se pide authorizeUrl
+
+  playlists: {
+    items: SpotifyPlaylist[];
+    status: SpotifyPlaylistsStatus;
+    error: string | null;
+  };
+  selectedPlaylistId: string | null;
+  creating: SpotifyCreatingStatus;
 }
 
 const initialState: SpotifyState = {
@@ -13,6 +24,14 @@ const initialState: SpotifyState = {
   connection: null,
   error: null,
   connecting: false,
+
+  playlists: {
+    items: [],
+    status: 'idle',
+    error: null,
+  },
+  selectedPlaylistId: null,
+  creating: 'idle',
 };
 
 const deriveStatus = (connection: SpotifyConnection): SpotifyConnectionStatus => {
@@ -53,6 +72,9 @@ export const spotifySlice = createSlice({
       state.connection = action.payload;
       state.status = deriveStatus(action.payload);
       state.error = null;
+      // El servidor manda: el destino elegido se toma de la respuesta de
+      // GET /spotify/status, igual que isSpotifyConnected en userSlice.
+      state.selectedPlaylistId = action.payload.defaultPlaylistId;
     },
     setSpotifyError: (state, action: PayloadAction<string>) => {
       state.status = 'error';
@@ -69,6 +91,28 @@ export const spotifySlice = createSlice({
     setSpotifyConnecting: (state, action: PayloadAction<boolean>) => {
       state.connecting = action.payload;
     },
+    setPlaylistsLoading: (state) => {
+      state.playlists.status = 'loading';
+      state.playlists.error = null;
+    },
+    setPlaylists: (state, action: PayloadAction<SpotifyPlaylist[]>) => {
+      state.playlists.items = action.payload;
+      state.playlists.status = 'ready';
+      state.playlists.error = null;
+    },
+    setPlaylistsError: (state, action: PayloadAction<string>) => {
+      state.playlists.status = 'error';
+      state.playlists.error = action.payload;
+    },
+    addPlaylist: (state, action: PayloadAction<SpotifyPlaylist>) => {
+      state.playlists.items.push(action.payload);
+    },
+    setSelectedPlaylistId: (state, action: PayloadAction<string | null>) => {
+      state.selectedPlaylistId = action.payload;
+    },
+    setCreating: (state, action: PayloadAction<SpotifyCreatingStatus>) => {
+      state.creating = action.payload;
+    },
     resetSpotify: () => initialState,
   },
 });
@@ -79,6 +123,12 @@ export const {
   setSpotifyError,
   setSpotifyNeedsReconnect,
   setSpotifyConnecting,
+  setPlaylistsLoading,
+  setPlaylists,
+  setPlaylistsError,
+  addPlaylist,
+  setSelectedPlaylistId,
+  setCreating,
   resetSpotify,
 } = spotifySlice.actions;
 export default spotifySlice.reducer;

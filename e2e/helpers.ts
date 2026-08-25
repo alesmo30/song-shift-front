@@ -18,6 +18,7 @@ interface SpotifyStatus {
   scopes: string[];
   connectedAt: string | null;
   needsReconnect: boolean;
+  defaultPlaylistId: string | null;
 }
 
 const DEFAULT_SPOTIFY_STATUS: SpotifyStatus = {
@@ -29,9 +30,30 @@ const DEFAULT_SPOTIFY_STATUS: SpotifyStatus = {
   scopes: [],
   connectedAt: null,
   needsReconnect: false,
+  defaultPlaylistId: null,
 };
 
 export type SpotifyStatusOverrides = Partial<SpotifyStatus>;
+
+export interface SpotifyPlaylistFixture {
+  id: string;
+  name: string;
+  description: string;
+  trackCount: number;
+  public: boolean;
+  imageUrl: string | null;
+  url: string;
+}
+
+export const SPOTIFY_PLAYLIST_FIXTURE: SpotifyPlaylistFixture = {
+  id: 'pl-verano-2026',
+  name: 'Verano 2026',
+  description: '',
+  trackCount: 42,
+  public: false,
+  imageUrl: null,
+  url: 'https://open.spotify.com/playlist/pl-verano-2026',
+};
 
 /**
  * Enruta las llamadas de Spotify a respuestas fijas. Landing consulta
@@ -48,12 +70,48 @@ export async function mockSpotifyApi(
     status?: SpotifyStatusOverrides;
     authUrl?: { authorizeUrl: string; state: string; expiresAt: string } | 'error';
     disconnect?: 'ok' | 'error';
+    playlists?: SpotifyPlaylistFixture[];
   } = {},
 ) {
   const status = { ...DEFAULT_SPOTIFY_STATUS, ...options.status };
   await page.route('**/spotify/status', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(status) }),
   );
+
+  const playlists = options.playlists ?? [];
+  await page.route('**/spotify/playlists**', (route) => {
+    const request = route.request();
+    if (request.method() === 'GET') {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ items: playlists, total: playlists.length, limit: 50, offset: 0 }),
+      });
+    }
+    if (request.method() === 'POST') {
+      const body = request.postDataJSON() as { name: string };
+      const created: SpotifyPlaylistFixture = {
+        id: `pl-${body.name.toLowerCase().replace(/\s+/g, '-')}`,
+        name: body.name,
+        description: '',
+        trackCount: 0,
+        public: false,
+        imageUrl: null,
+        url: 'https://open.spotify.com/playlist/created',
+      };
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(created) });
+    }
+    return route.fallback();
+  });
+
+  await page.route('**/spotify/default-playlist', (route) => {
+    const body = route.request().postDataJSON() as { playlistId: string | null };
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ defaultPlaylistId: body.playlistId }),
+    });
+  });
 
   if (options.authUrl) {
     await page.route('**/spotify/auth-url', (route) => {
@@ -121,9 +179,14 @@ export async function seedAuthenticatedUser(page: Page, path: string) {
  * GET /spotify/status como desconectado por defecto (ver mockSpotifyApi);
  * pasar `spotifyStatus` para probar otro estado del banner.
  */
-export async function gotoAuthenticated(page: Page, path: string, spotifyStatus?: SpotifyStatusOverrides) {
+export async function gotoAuthenticated(
+  page: Page,
+  path: string,
+  spotifyStatus?: SpotifyStatusOverrides,
+  playlists?: SpotifyPlaylistFixture[],
+) {
   await seedAuthenticatedUser(page, path);
-  await mockSpotifyApi(page, { status: spotifyStatus });
+  await mockSpotifyApi(page, { status: spotifyStatus, playlists });
   await gotoStable(page, path);
 }
 

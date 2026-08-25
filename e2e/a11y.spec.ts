@@ -42,8 +42,9 @@ test.describe('Accesibilidad ganada con MUI', () => {
   });
 
   test('los botones-icono tienen nombre accesible', async ({ page }) => {
-    await gotoAuthenticated(page, '/');
+    await gotoAuthenticated(page, '/', { connected: true, displayName: 'Jane Doe' }, []);
     await expect(page.getByRole('button', { name: 'Refresh playlist' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Create new playlist' })).toBeVisible();
 
     await page.getByTestId('tab-upload').click();
     await page.getByTestId('upload-input').setInputFiles('src/assets/logo-mark.png');
