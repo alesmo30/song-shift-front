@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoStable } from './helpers';
+import { gotoStable, mockSpotifyApi, type SpotifyStatusOverrides } from './helpers';
 
 const PERSIST_KEY = 'persist:totify';
 
@@ -13,9 +13,17 @@ type PersistedUser = {
 /**
  * Escribe el estado persistido y navega a `path`. A diferencia de `addInitScript`,
  * esto no se re-ejecuta en reloads posteriores, así que no pisa cambios hechos
- * en la página (p. ej. un toggle) cuando el test luego hace `page.reload()`.
+ * en la página (p. ej. una acción de Spotify) cuando el test luego hace
+ * `page.reload()`. También stubea GET /spotify/status como desconectado por
+ * defecto -- ver mockSpotifyApi en helpers.ts -- para que el mount de Landing
+ * no golpee el backend real; pasar `spotifyStatus` para otro estado.
  */
-async function seedPersistedUserAndGoto(page: import('@playwright/test').Page, path: string, user: PersistedUser) {
+async function seedPersistedUserAndGoto(
+  page: import('@playwright/test').Page,
+  path: string,
+  user: PersistedUser,
+  spotifyStatus?: SpotifyStatusOverrides,
+) {
   await gotoStable(page, path);
   await page.evaluate(
     ({ key, user }: { key: string; user: PersistedUser }) => {
@@ -29,6 +37,7 @@ async function seedPersistedUserAndGoto(page: import('@playwright/test').Page, p
     },
     { key: PERSIST_KEY, user },
   );
+  await mockSpotifyApi(page, { status: spotifyStatus });
   await gotoStable(page, path);
 }
 
@@ -44,6 +53,7 @@ test.describe('Persistencia de Redux (redux-persist)', () => {
         }),
       });
     });
+    await mockSpotifyApi(page);
     await gotoStable(page, '/login');
     await page.getByPlaceholder('you@example.com').fill('jane@example.com');
     await page.getByPlaceholder('••••••••').fill('secret123');
@@ -72,18 +82,29 @@ test.describe('Persistencia de Redux (redux-persist)', () => {
     await secondPage.close();
   });
 
-  test('el toggle de Spotify persiste tras un reload', async ({ page }) => {
-    await seedPersistedUserAndGoto(page, '/', {
-      name: 'jane',
-      email: 'jane@example.com',
-      isSpotifyConnected: false,
-      token: 'mock-token',
-    });
-    await page.getByTestId('spotify-toggle').click();
-    await expect(page.getByText('Spotify connected')).toBeVisible();
+  test('un isSpotifyConnected persistido en true pierde frente a un status que dice false', async ({ page }) => {
+    // Este es el caso que justifica que la conexión de Spotify la mande el
+    // servidor y no un booleano local: el flag persistido dice "conectado"
+    // pero GET /spotify/status dice lo contrario (p. ej. el usuario revocó
+    // el acceso desde Spotify). El servidor debe ganar.
+    await seedPersistedUserAndGoto(
+      page,
+      '/',
+      {
+        name: 'jane',
+        email: 'jane@example.com',
+        isSpotifyConnected: true,
+        token: 'mock-token',
+      },
+      { connected: false },
+    );
 
-    await page.reload();
-    await expect(page.getByText('Spotify connected')).toBeVisible();
+    await expect(page.getByText('Spotify not connected')).toBeVisible();
+
+    const persisted = await page.evaluate((key) => window.localStorage.getItem(key), PERSIST_KEY);
+    expect(persisted).toBeTruthy();
+    const user = JSON.parse(JSON.parse(persisted as string).user);
+    expect(user.isSpotifyConnected).toBe(false);
   });
 
   test('el logout borra el estado persistido', async ({ page }) => {

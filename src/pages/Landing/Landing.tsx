@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Button from '@mui/material/Button';
@@ -16,9 +16,16 @@ import { PlaylistPanel } from './PlaylistPanel';
 import styles from './Landing.module.css';
 import { persistor } from '../../store/store';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setUser, clearUser } from '../../store/features/userSlice';
-import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { clearUser, setSpotifyConnected } from '../../store/features/userSlice';
+import { setSpotifyConnecting, resetSpotify, setSpotifyError, setSpotifyNeedsReconnect } from '../../store/features/spotifySlice';
+import { loadSpotifyStatus } from '../../store/spotifyStatus';
+import { isSpotifyReauthRequired } from '../../store/spotifyErrorHandling';
+import { getSpotifyAuthUrl, disconnectSpotify } from '../../api/spotify.service';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert } from '@mui/material';
+
+const SPOTIFY_CONNECT_ERROR_MESSAGE = 'No pudimos iniciar la conexión con Spotify. Inténtalo de nuevo.';
+const SPOTIFY_DISCONNECT_ERROR_MESSAGE = 'No pudimos desconectar tu cuenta de Spotify. Inténtalo de nuevo.';
 
 export function Landing({
   onConnectSpotify,
@@ -30,18 +37,78 @@ export function Landing({
   onRefreshPlaylist,
 }: LandingProps) {
   const [activeTab, setActiveTab] = useState<'search' | 'upload' | 'selected'>('search');
-  const { name, email, isSpotifyConnected: userIsSpotifyConnected, token } = useAppSelector((state) => state.user);
+  const { name } = useAppSelector((state) => state.user);
+  const { status: spotifyStatus, connection: spotifyConnection, error: spotifyError, connecting: spotifyConnecting } = useAppSelector((state) => state.spotify);
   const selectedCount = useAppSelector((state) => state.songs.selected.length);
   const [open, setOpen] = useState(false);
+  const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch()
 
-  const handleToggleSpotify = () => {
-    dispatch(setUser({ name, email, isSpotifyConnected: !userIsSpotifyConnected, token }))
-    if (onConnectSpotify) {
-      onConnectSpotify();
-    } else {
-      console.log('onConnectSpotify not implemented');
+  const callbackMessage = (location.state as { spotifyCallbackMessage?: string } | null)?.spotifyCallbackMessage ?? null;
+  const [callbackSnackbarMessage, setCallbackSnackbarMessage] = useState<string | null>(callbackMessage);
+
+  // Guard contra el doble-invoke de StrictMode en desarrollo (monta → limpia
+  // → monta): sin esto, GET /spotify/status sale dos veces en cada carga.
+  // El ref sobrevive ese ciclo porque es la misma instancia de componente.
+  const hasFetchedSpotifyStatus = useRef(false);
+
+  useEffect(() => {
+    if (hasFetchedSpotifyStatus.current) return;
+    hasFetchedSpotifyStatus.current = true;
+    loadSpotifyStatus(dispatch);
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Se muestra una sola vez: limpia el state de router para que un
+    // reload o un back no vuelvan a disparar el Snackbar.
+    if (callbackMessage) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleConnect = async () => {
+    dispatch(setSpotifyConnecting(true));
+    try {
+      const { authorizeUrl } = await getSpotifyAuthUrl();
+      if (onConnectSpotify) {
+        onConnectSpotify();
+      } else {
+        console.log('onConnectSpotify not implemented');
+      }
+      window.location.assign(authorizeUrl);
+    } catch (error) {
+      dispatch(setSpotifyConnecting(false));
+      if (isSpotifyReauthRequired(error)) {
+        dispatch(setSpotifyNeedsReconnect());
+      } else {
+        dispatch(setSpotifyError(SPOTIFY_CONNECT_ERROR_MESSAGE));
+      }
+    }
+  };
+
+  const handleDisconnectClick = () => {
+    setDisconnectDialogOpen(true);
+  };
+
+  const handleDisconnectCancel = () => {
+    setDisconnectDialogOpen(false);
+  };
+
+  const handleDisconnectConfirm = async () => {
+    setDisconnectDialogOpen(false);
+    try {
+      await disconnectSpotify();
+      dispatch(setSpotifyConnected(false));
+      await loadSpotifyStatus(dispatch);
+    } catch (error) {
+      if (isSpotifyReauthRequired(error)) {
+        dispatch(setSpotifyNeedsReconnect());
+      } else {
+        dispatch(setSpotifyError(SPOTIFY_DISCONNECT_ERROR_MESSAGE));
+      }
     }
   };
 
@@ -55,6 +122,7 @@ export function Landing({
 
   const handleLogout = () => {
     dispatch(clearUser());
+    dispatch(resetSpotify());
     persistor.purge();
     navigate('/login');
     if (onLogout) {
@@ -105,22 +173,100 @@ export function Landing({
         </div>
       </nav>
 
-      <div className={`${styles.banner} ${userIsSpotifyConnected ? styles.bannerConnected : ''}`}>
+      <div
+        className={`${styles.banner} ${
+          spotifyStatus === 'connected'
+            ? styles.bannerConnected
+            : spotifyStatus === 'needs-reconnect'
+              ? styles.bannerNeedsReconnect
+              : ''
+        }`}
+      >
         <div className={styles.bannerLeft}>
           <div className={styles.spotifyGlyph}>
             <SpotifyIcon size={18} color="#ffffff" />
           </div>
-          <p className={styles.bannerStatus}>{userIsSpotifyConnected ? 'Spotify connected' : 'Spotify not connected'}</p>
+          <p className={styles.bannerStatus} data-testid="spotify-status-text">
+            {spotifyStatus === 'idle' || spotifyStatus === 'loading'
+              ? 'Checking Spotify connection…'
+              : spotifyStatus === 'connected'
+                ? spotifyConnection?.displayName
+                  ? `Spotify connected as ${spotifyConnection.displayName}`
+                  : 'Spotify connected'
+                : spotifyStatus === 'needs-reconnect'
+                  ? 'Spotify needs reconnection'
+                  : spotifyStatus === 'error'
+                    ? spotifyError ?? 'Spotify not connected'
+                    : 'Spotify not connected'}
+          </p>
         </div>
-        <Button
-          variant="text"
-          className={userIsSpotifyConnected ? styles.bannerBtnConnected : styles.bannerBtnDisconnected}
-          data-testid="spotify-toggle"
-          onClick={handleToggleSpotify}
-        >
-          {userIsSpotifyConnected ? '✓ Connected' : 'Connect Spotify'}
-        </Button>
+        {spotifyStatus === 'idle' || spotifyStatus === 'loading' ? (
+          <Button variant="text" className={styles.bannerBtnDisconnected} data-testid="spotify-toggle" disabled>
+            Checking…
+          </Button>
+        ) : spotifyStatus === 'connected' ? (
+          <Button
+            variant="text"
+            className={styles.bannerBtnConnected}
+            data-testid="spotify-toggle"
+            onClick={handleDisconnectClick}
+          >
+            Disconnect
+          </Button>
+        ) : spotifyStatus === 'needs-reconnect' ? (
+          <Button
+            variant="text"
+            className={styles.bannerBtnDisconnected}
+            data-testid="spotify-toggle"
+            disabled={spotifyConnecting}
+            onClick={handleConnect}
+          >
+            {spotifyConnecting ? 'Reconnecting…' : 'Reconnect'}
+          </Button>
+        ) : spotifyStatus === 'error' ? (
+          <Button
+            variant="text"
+            className={styles.bannerBtnDisconnected}
+            data-testid="spotify-toggle"
+            onClick={() => loadSpotifyStatus(dispatch)}
+          >
+            Retry
+          </Button>
+        ) : (
+          <Button
+            variant="text"
+            className={styles.bannerBtnDisconnected}
+            data-testid="spotify-toggle"
+            disabled={spotifyConnecting}
+            onClick={handleConnect}
+          >
+            {spotifyConnecting ? 'Connecting…' : 'Connect Spotify'}
+          </Button>
+        )}
       </div>
+
+      <Dialog
+        open={disconnectDialogOpen}
+        onClose={handleDisconnectCancel}
+        aria-labelledby="disconnect-dialog-title"
+        aria-describedby="disconnect-dialog-description"
+      >
+        <DialogTitle id="disconnect-dialog-title">Disconnect Spotify?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="disconnect-dialog-description">
+            Disconnecting removes Totify's access on our side. Spotify will still show Totify under your
+            connected apps until you remove it yourself at spotify.com/account/apps.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button data-testid="disconnect-confirm" onClick={handleDisconnectConfirm}>
+            Disconnect
+          </Button>
+          <Button onClick={handleDisconnectCancel} autoFocus>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <div className={styles.panels}>
         <div className={`t-panel ${styles.panel}`}>
@@ -171,6 +317,23 @@ export function Landing({
           <PlaylistPanel onRefreshPlaylist={onRefreshPlaylist} />
         </div>
       </div>
+
+      <Snackbar
+        open={Boolean(callbackSnackbarMessage)}
+        autoHideDuration={6000}
+        onClose={() => setCallbackSnackbarMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setCallbackSnackbarMessage(null)}
+          severity="error"
+          variant="filled"
+          data-testid="spotify-callback-error"
+          sx={{ width: '100%' }}
+        >
+          {callbackSnackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

@@ -25,9 +25,15 @@ export const userSlice = createSlice({
             state.isSpotifyConnected = isSpotifyConnected;
             state.token = token;
         },
+        // Único escritor de isSpotifyConnected fuera de setUser/clearUser.
+        // Se despacha solo desde la carga/actualización del estado de Spotify
+        // (ver src/store/features/spotifySlice.ts), nunca desde un componente.
+        setSpotifyConnected: (state, action: PayloadAction<boolean>) => {
+            state.isSpotifyConnected = action.payload;
+        },
         clearUser: () => initialState,
     },
 })
 
-export const { setUser, clearUser } = userSlice.actions;
+export const { setUser, setSpotifyConnected, clearUser } = userSlice.actions;
 export default userSlice.reducer;
