@@ -15,7 +15,9 @@ interface SelectedPanelProps {
 export function SelectedPanel({ visible, onAddToPlaylist }: SelectedPanelProps) {
   const dispatch = useAppDispatch();
   const { selected, status, error } = useAppSelector((state) => state.songs);
+  const selectedPlaylistId = useAppSelector((state) => state.spotify.selectedPlaylistId);
   const isSending = status === 'sending';
+  const hasDestination = Boolean(selectedPlaylistId);
 
   const handleRemove = (id: string) => {
     dispatch(removeSelected(id));
@@ -93,7 +95,8 @@ export function SelectedPanel({ visible, onAddToPlaylist }: SelectedPanelProps) 
             variant="text"
             className={styles.validateBtn}
             data-testid="add-to-playlist"
-            disabled={selected.length === 0 || isSending}
+            disabled={selected.length === 0 || isSending || !hasDestination}
+            title={hasDestination ? undefined : 'Choose a destination playlist first'}
             onClick={handleAddToPlaylist}
           >
             {isSending ? 'Adding…' : 'Add to playlist'}

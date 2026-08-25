@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoAuthenticated, freeze, mockSpotifyApi } from './helpers';
+import { gotoAuthenticated, freeze, mockSpotifyApi, SPOTIFY_PLAYLIST_FIXTURE } from './helpers';
 
 const MOCK_EXTRACT_RESPONSE = {
   songs: [
@@ -135,14 +135,14 @@ test.describe('Landing', () => {
     await expect(page.getByText('7 results · page 1 of 2')).toBeVisible();
   });
 
-  test('el panel de playlist muestra el estado vacío por defecto', async ({ page }) => {
+  test('el panel de playlist pide conectar Spotify por defecto', async ({ page }) => {
     await gotoAuthenticated(page, '/');
-    await expect(page.getByText('0 songs added')).toBeVisible();
-    await expect(page.getByText('No songs yet')).toBeVisible();
+    await expect(page.getByText('No playlist selected')).toBeVisible();
+    await expect(page.getByText('Connect Spotify to choose a destination playlist')).toBeVisible();
   });
 
-  test('el refresh de playlist es clicable', async ({ page }) => {
-    await gotoAuthenticated(page, '/');
+  test('el refresh de playlist recarga la lista una vez conectado', async ({ page }) => {
+    await gotoAuthenticated(page, '/', { connected: true, displayName: 'Jane Doe' }, []);
     await page.getByTestId('refresh-playlist').click();
     await expect(page.getByRole('heading', { name: 'Spotify Playlist' })).toBeVisible();
   });
@@ -248,7 +248,14 @@ test.describe('Landing', () => {
   test('el flujo completo: detectar, seleccionar y mandar a la playlist', async ({ page }) => {
     await mockExtractSongs(page);
     await mockSendToPlaylist(page);
-    await gotoAuthenticated(page, '/');
+    // "Add to playlist" exige una playlist destino elegida desde el spec 06;
+    // se siembra conectado con defaultPlaylistId apuntando al fixture.
+    await gotoAuthenticated(
+      page,
+      '/',
+      { connected: true, displayName: 'Jane Doe', defaultPlaylistId: SPOTIFY_PLAYLIST_FIXTURE.id },
+      [SPOTIFY_PLAYLIST_FIXTURE],
+    );
 
     // Detectar desde Upload
     await page.getByTestId('tab-upload').click();
@@ -283,8 +290,7 @@ test.describe('Landing', () => {
     await expect(page.getByTestId('tab-selected')).toHaveText('Selected (0)');
     await expect(page.getByText('No songs selected')).toBeVisible();
 
-    await page.getByTestId('tab-search').click();
-    await expect(page.getByText('2 songs added')).toBeVisible();
+    await expect(page.getByText('Added ✓')).toHaveCount(2);
   });
 
   test('logout navega a /login', async ({ page }) => {

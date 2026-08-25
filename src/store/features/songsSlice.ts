@@ -55,6 +55,9 @@ export const songsSlice = createSlice({
       state.playlist.push(...state.selected);
       state.selected = [];
     },
+    cleanPlaylist: (state) => {
+      state.playlist = [];
+    },
     setStatus: (state, action: PayloadAction<SongsState['status']>) => {
       state.status = action.payload;
     },
@@ -71,6 +74,7 @@ export const {
   removeSelected,
   selectAllDetected,
   clearSelected,
+  cleanPlaylist,
   commitSelected,
   setStatus,
   setError,
