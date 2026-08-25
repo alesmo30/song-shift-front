@@ -1,6 +1,6 @@
 # 05 — Conexión de Spotify desde la UI
 
-**Estado:** Approved
+**Estado:** Implementado
 **Depende de:** `specs/04-tab-selected-y-upload-real.md` (Implementado) y `backend/specs/02-spotify-oauth.md` (mergeado en `main` vía PR #25)
 **Fecha:** 2026-08-24
 
@@ -166,51 +166,51 @@ Cada paso deja `npm run build` y `npm run lint` en verde, y la app arrancable. L
 
 ### Conectar
 
-- [ ] Con la sesión iniciada y sin cuenta de Spotify, el banner dice "Spotify not connected".
-- [ ] Al montar Landing se dispara exactamente una petición a `GET /spotify/status`.
-- [ ] Mientras esa petición está en vuelo, el botón del banner está deshabilitado.
-- [ ] Pulsar "Connect Spotify" dispara `POST /spotify/auth-url` y navega a la URL devuelta.
-- [ ] Mientras `POST /spotify/auth-url` está en vuelo, el botón está deshabilitado y no se puede disparar dos veces.
-- [ ] Aprobar el consentimiento en Spotify devuelve al usuario a la app y el banner queda en "Spotify connected".
-- [ ] Tras conectar, el banner muestra el `displayName` de la cuenta de Spotify.
-- [ ] Volver del callback deja la URL en `/`, sin `?spotify=connected` colgando en la barra de direcciones.
-- [ ] El usuario sigue autenticado en Totify tras el viaje completo a Spotify y de vuelta.
+- [x] Con la sesión iniciada y sin cuenta de Spotify, el banner dice "Spotify not connected".
+- [x] Al montar Landing se dispara exactamente una petición a `GET /spotify/status`.
+- [x] Mientras esa petición está en vuelo, el botón del banner está deshabilitado.
+- [x] Pulsar "Connect Spotify" dispara `POST /spotify/auth-url` y navega a la URL devuelta.
+- [x] Mientras `POST /spotify/auth-url` está en vuelo, el botón está deshabilitado y no se puede disparar dos veces.
+- [x] Aprobar el consentimiento en Spotify devuelve al usuario a la app y el banner queda en "Spotify connected".
+- [x] Tras conectar, el banner muestra el `displayName` de la cuenta de Spotify.
+- [x] Volver del callback deja la URL en `/`, sin `?spotify=connected` colgando en la barra de direcciones.
+- [x] El usuario sigue autenticado en Totify tras el viaje completo a Spotify y de vuelta.
 
 ### Estado derivado del servidor
 
-- [ ] Con `isSpotifyConnected: true` persistido en `localStorage` y un `GET /spotify/status` que responde `connected: false`, el banner muestra desconectado.
-- [ ] Ese mismo caso deja `isSpotifyConnected` en `false` en el estado persistido tras la respuesta.
-- [ ] Ningún componente escribe `user.isSpotifyConnected` directamente: el único `dispatch(setSpotifyConnected(...))` sale del slice de Spotify.
-- [ ] El slice `spotify` no aparece en la clave `persist:totify` de `localStorage`.
-- [ ] Recargar la página vuelve a consultar `GET /spotify/status`.
+- [x] Con `isSpotifyConnected: true` persistido en `localStorage` y un `GET /spotify/status` que responde `connected: false`, el banner muestra desconectado.
+- [x] Ese mismo caso deja `isSpotifyConnected` en `false` en el estado persistido tras la respuesta.
+- [x] Ningún componente escribe `user.isSpotifyConnected` directamente: el único `dispatch(setSpotifyConnected(...))` sale del slice de Spotify.
+- [x] El slice `spotify` no aparece en la clave `persist:totify` de `localStorage`.
+- [x] Recargar la página vuelve a consultar `GET /spotify/status`.
 
 ### Desconectar
 
-- [ ] Estando conectado, el botón del banner ofrece desconectar.
-- [ ] Pulsarlo abre un diálogo de confirmación; cancelar no dispara ninguna petición.
-- [ ] Confirmar dispara `DELETE /spotify/connection` y deja el banner en desconectado.
-- [ ] El diálogo de desconexión advierte de que el permiso sigue vivo en la cuenta de Spotify del usuario hasta que lo retire en spotify.com/account/apps.
+- [x] Estando conectado, el botón del banner ofrece desconectar.
+- [x] Pulsarlo abre un diálogo de confirmación; cancelar no dispara ninguna petición.
+- [x] Confirmar dispara `DELETE /spotify/connection` y deja el banner en desconectado.
+- [x] El diálogo de desconexión advierte de que el permiso sigue vivo en la cuenta de Spotify del usuario hasta que lo retire en spotify.com/account/apps.
 
 ### Reconexión y errores
 
-- [ ] Con `needsReconnect: true` en la respuesta de status, el banner muestra la variante de reconexión, distinta de conectado y de desconectado.
-- [ ] La acción de reconectar arranca el mismo flujo que conectar.
-- [ ] Una respuesta `409` con `code: 'SPOTIFY_REAUTH_REQUIRED'` lleva al estado de reconexión y **no** desloguea al usuario de Totify.
-- [ ] Ese `409` **no** dispara `POST /renew-tokens`.
-- [ ] `/spotify/callback?spotify=error&reason=access_denied` muestra un mensaje de que el usuario canceló, no un error genérico.
-- [ ] Cada uno de los siete `reason` del backend tiene su propio mensaje y ninguno muestra `[object Object]` ni el `reason` crudo.
-- [ ] Si `GET /spotify/status` falla, el banner queda en estado de error y no afirma que hay conexión.
+- [x] Con `needsReconnect: true` en la respuesta de status, el banner muestra la variante de reconexión, distinta de conectado y de desconectado.
+- [x] La acción de reconectar arranca el mismo flujo que conectar.
+- [x] Una respuesta `409` con `code: 'SPOTIFY_REAUTH_REQUIRED'` lleva al estado de reconexión y **no** desloguea al usuario de Totify.
+- [x] Ese `409` **no** dispara `POST /renew-tokens`.
+- [x] `/spotify/callback?spotify=error&reason=access_denied` muestra un mensaje de que el usuario canceló, no un error genérico.
+- [x] Cada uno de los siete `reason` del backend tiene su propio mensaje y ninguno muestra `[object Object]` ni el `reason` crudo.
+- [x] Si `GET /spotify/status` falla, el banner queda en estado de error y no afirma que hay conexión.
 
 ### Proyecto
 
-- [ ] `npm run build` pasa.
-- [ ] `npm run lint` pasa.
-- [ ] `npm run test:e2e` pasa entero.
-- [ ] `e2e/landing.spec.ts` y `e2e/persistence.spec.ts` ya no contienen ningún test que asuma que el toggle invierte estado en local.
-- [ ] Ningún test de Playwright hace una petición real a `accounts.spotify.com` ni a `api.spotify.com`.
-- [ ] Las 14 baselines visuales pasan sin regenerarse, salvo `landing-spotify-conectado.png`, cuyo banner cambia por diseño. (Ver nota en Riesgos: viven fuera del repo.)
-- [ ] `src/api/client.ts` no se ha modificado.
-- [ ] `src/pages/Landing/PlaylistPanel.tsx`, `UploadPanel.tsx`, `SearchPanel.tsx` y `songsSlice.ts` no se han modificado.
+- [x] `npm run build` pasa.
+- [x] `npm run lint` pasa.
+- [x] `npm run test:e2e` pasa entero.
+- [x] `e2e/landing.spec.ts` y `e2e/persistence.spec.ts` ya no contienen ningún test que asuma que el toggle invierte estado en local.
+- [x] Ningún test de Playwright hace una petición real a `accounts.spotify.com` ni a `api.spotify.com`.
+- [x] Las 14 baselines visuales pasan sin regenerarse, salvo `landing-spotify-conectado.png`, cuyo banner cambia por diseño. (Ver nota en Riesgos: viven fuera del repo.)
+- [x] `src/api/client.ts` no se ha modificado.
+- [x] `src/pages/Landing/PlaylistPanel.tsx`, `UploadPanel.tsx`, `SearchPanel.tsx` y `songsSlice.ts` no se han modificado.
 
 ## Decisiones tomadas y descartadas
 
@@ -276,6 +276,15 @@ Cada paso deja `npm run build` y `npm run lint` en verde, y la app arrancable. L
 - Tocar `PlaylistPanel`, `UploadPanel`, `SearchPanel` o `songsSlice`, que son del spec 04.
 
 Cada uno, cuando llegue, va en su propia spec.
+
+## Notas de implementación
+
+- **`spotifySlice` es síncrono, sin `createAsyncThunk`.** El spec original asumía thunks de RTK; al implementar, el spec 04 ya se había mergeado y estableció que `songsSlice` usa reducers síncronos con la lógica async viviendo en los componentes. Se siguió esa convención real en vez de la asumida al escribir el diseño. `loadSpotifyStatus` es una función async de módulo (`src/store/spotifyStatus.ts`) que llama `dispatch` varias veces, no un thunk despachado.
+- **El mensaje de error del callback viaja por `router state`, no por el slice.** El diseño original asumía que `dispatch(setSpotifyCallbackError(reason))` bastaba antes de navegar a `/`. En la práctica, el `useEffect` de montaje de `Landing` dispara su propio `fetchSpotifyStatus` y pisaba el error antes de que el usuario lo viera. Se rediseñó: `SpotifyCallback` resuelve el mensaje (via `getSpotifyCallbackErrorMessage`, que sigue centralizada en `spotifySlice.ts`) y lo pasa por `navigate('/', { replace: true, state: {...} })`; `Landing` lo muestra en un `Snackbar`/`Alert` (mismo patrón que ya usa `Login.tsx`) y limpia el `state` para que no reaparezca en un reload.
+- **Bug real encontrado y arreglado: `StrictMode` disparaba `GET /spotify/status` dos veces por carga.** `src/main.tsx` envuelve la app en `<StrictMode>`, que en desarrollo invoca los efectos dos veces (monta → limpia → monta). Confirmado con el Network tab de un navegador real, no solo en teoría: dos `GET` por cada carga de página. Arreglado con un `useRef` en `Landing.tsx` que sobrevive ese ciclo. No afecta producción (`StrictMode` no duplica efectos fuera de dev), pero el criterio de aceptación no distinguía dev de prod, y Playwright corre sobre `npm run dev`.
+- **Las baselines visuales copiadas al principio no eran fiables sin verificación.** `e2e/__screenshots__` está fuera del repo (`.gitignore`), así que se copiaron a mano desde el checkout principal. En algún punto, `landing-spotify-conectado.png` pasó `toHaveScreenshot` durante varias corridas completas pese a mostrar contenido claramente desactualizado (la playlist mock de antes del spec 04, el botón `✓ Connected` de antes de este spec). La causa: `maxDiffPixelRatio: 0.02` sobre un lienzo de 1440×900 mayormente oscuro deja mucho margen — diferencias de texto real caben bajo el 2% de píxeles totales. Se verificó con hashes MD5 contra las baselines de `main`: 12 de 14 son byte-idénticas (cero regresión incidental), y las 2 que difieren (`landing-spotify-conectado.png` por este spec, `landing-upload-detectadas.png` por el spec 04) están justificadas. Se regeneró `landing-spotify-conectado.png` para que sea un capture exacto del estado actual, no uno que pasa por margen de tolerancia.
+- **`gotoAuthenticated` ya existía** (creado por el spec 04) con el nombre que este spec había planeado llamar `seedUser`; se extendió en vez de duplicarlo, y se le añadió el stub de `/spotify/status` por defecto. Se extrajo además `seedAuthenticatedUser` como pieza de más bajo nivel, para los tests que necesitan registrar su propio `page.route` de Spotify sin pelear por precedencia con el stub por defecto (Playwright resuelve rutas superpuestas por orden de registro: la más reciente gana).
+- **Verificado en vivo contra un backend real** con `claude-in-chrome`, no solo con red mockeada: se insertó una fila real de `SpotifyAccount` directo en la base (con tokens cifrados de relleno, ya que `GET /spotify/status` no los descifra para responder) para probar los estados conectado, `needs-reconnect` y desconectado sin necesitar credenciales reales de Spotify ni completar el consentimiento real. Se encontró y arregló de paso un bug de infraestructura ajeno a este spec: el backend corriendo tenía el cliente Prisma generado desde antes de que existiera el modelo `SpotifyAccount`.
 
 ## Verificación
 
