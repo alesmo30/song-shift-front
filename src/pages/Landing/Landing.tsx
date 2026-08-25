@@ -17,18 +17,12 @@ import styles from './Landing.module.css';
 import { persistor } from '../../store/store';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { clearUser, setSpotifyConnected } from '../../store/features/userSlice';
-import {
-  setSpotifyLoading,
-  setSpotifyConnection,
-  setSpotifyError,
-  setSpotifyConnecting,
-  resetSpotify,
-} from '../../store/features/spotifySlice';
-import { getSpotifyAuthUrl, getSpotifyStatus, disconnectSpotify } from '../../api/spotify.service';
-import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { setSpotifyConnecting, resetSpotify, setSpotifyError } from '../../store/features/spotifySlice';
+import { loadSpotifyStatus } from '../../store/spotifyStatus';
+import { getSpotifyAuthUrl, disconnectSpotify } from '../../api/spotify.service';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert } from '@mui/material';
 
-const SPOTIFY_STATUS_ERROR_MESSAGE = 'No pudimos comprobar tu conexión con Spotify.';
 const SPOTIFY_CONNECT_ERROR_MESSAGE = 'No pudimos iniciar la conexión con Spotify. Inténtalo de nuevo.';
 
 export function Landing({
@@ -47,21 +41,22 @@ export function Landing({
   const [open, setOpen] = useState(false);
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch()
 
-  const loadSpotifyStatus = async () => {
-    dispatch(setSpotifyLoading());
-    try {
-      const connection = await getSpotifyStatus();
-      dispatch(setSpotifyConnection(connection));
-      dispatch(setSpotifyConnected(connection.connected));
-    } catch {
-      dispatch(setSpotifyError(SPOTIFY_STATUS_ERROR_MESSAGE));
-    }
-  };
+  const callbackMessage = (location.state as { spotifyCallbackMessage?: string } | null)?.spotifyCallbackMessage ?? null;
+  const [callbackSnackbarMessage, setCallbackSnackbarMessage] = useState<string | null>(callbackMessage);
 
   useEffect(() => {
-    loadSpotifyStatus();
+    loadSpotifyStatus(dispatch);
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Se muestra una sola vez: limpia el state de router para que un
+    // reload o un back no vuelvan a disparar el Snackbar.
+    if (callbackMessage) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -93,7 +88,7 @@ export function Landing({
     setDisconnectDialogOpen(false);
     await disconnectSpotify();
     dispatch(setSpotifyConnected(false));
-    await loadSpotifyStatus();
+    await loadSpotifyStatus(dispatch);
   };
 
   const handleClickOpen = () => {
@@ -212,7 +207,7 @@ export function Landing({
             variant="text"
             className={styles.bannerBtnDisconnected}
             data-testid="spotify-toggle"
-            onClick={loadSpotifyStatus}
+            onClick={() => loadSpotifyStatus(dispatch)}
           >
             Retry
           </Button>
@@ -301,6 +296,23 @@ export function Landing({
           <PlaylistPanel onRefreshPlaylist={onRefreshPlaylist} />
         </div>
       </div>
+
+      <Snackbar
+        open={Boolean(callbackSnackbarMessage)}
+        autoHideDuration={6000}
+        onClose={() => setCallbackSnackbarMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setCallbackSnackbarMessage(null)}
+          severity="error"
+          variant="filled"
+          data-testid="spotify-callback-error"
+          sx={{ width: '100%' }}
+        >
+          {callbackSnackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

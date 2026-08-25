@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Login } from './pages/Login/Login';
 import { Signup } from './pages/Signup/Signup';
 import { Landing } from './pages/Landing/Landing';
+import { SpotifyCallback } from './pages/SpotifyCallback/SpotifyCallback';
 import { NotFound } from './pages/NotFound/NotFound';
 import { PrivateRoutes } from './route-protection/PrivateRoutes';
 import { PublicOnlyRoutes } from './route-protection/PublicOnlyRoutes';
@@ -12,6 +13,7 @@ export function App() {
       <Routes>
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Landing />} />
+          <Route path="/spotify/callback" element={<SpotifyCallback />} />
         </Route>
         <Route element={<PublicOnlyRoutes />}>
           <Route path="/login" element={<Login />} />
