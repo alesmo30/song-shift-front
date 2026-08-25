@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoAuthenticated, freeze } from './helpers';
+import { gotoAuthenticated, freeze, mockSpotifyApi } from './helpers';
 
 const MOCK_EXTRACT_RESPONSE = {
   songs: [
@@ -38,10 +38,36 @@ test.describe('Landing', () => {
     await expect(page).toHaveScreenshot('landing.png');
   });
 
-  test('el toggle de Spotify cambia el banner', async ({ page }) => {
+  test('conectar Spotify pide la URL de autorización y navega a Spotify', async ({ page }) => {
     await gotoAuthenticated(page, '/');
+    await mockSpotifyApi(page, {
+      authUrl: {
+        authorizeUrl: 'https://accounts.spotify.com/authorize?client_id=test&state=abc',
+        state: 'abc',
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      },
+    });
+    const authUrlRequest = page.waitForRequest('**/spotify/auth-url');
     await page.getByTestId('spotify-toggle').click();
-    await expect(page.getByText('Spotify connected')).toBeVisible();
+    const request = await authUrlRequest;
+    expect(request.method()).toBe('POST');
+    await page.waitForURL(/accounts\.spotify\.com/);
+  });
+
+  test('el banner conectado muestra el nombre de la cuenta de Spotify', async ({ page }) => {
+    await gotoAuthenticated(page, '/', {
+      connected: true,
+      displayName: 'Jane Doe',
+      spotifyUserId: 'spotify-user-1',
+      scopes: [
+        'playlist-read-private',
+        'playlist-modify-private',
+        'playlist-modify-public',
+        'user-read-private',
+        'user-read-email',
+      ],
+    });
+    await expect(page.getByText('Spotify connected as Jane Doe')).toBeVisible();
     await freeze(page);
     await expect(page).toHaveScreenshot('landing-spotify-conectado.png');
   });

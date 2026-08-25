@@ -53,6 +53,14 @@
   color: var(--color-spotify);
 }
 
+.bannerNeedsReconnect {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.bannerNeedsReconnect .bannerStatus {
+  color: var(--color-warning);
+}
+
 .bannerLeft {
   display: flex;
   align-items: center;
